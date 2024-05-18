@@ -10,7 +10,9 @@ Would it be easier to buy one of the currently available products? Probably.
 
 What's the likelihood this project never goes anywhere? Higher than 0.
 
-So why I am doing it? I'm a sucker for starting something new, I'm a software developer and have started playing disc golf recently.
+So why I am doing it? I'm a sucker for starting something new, I'm a software developer, have started playing disc golf and have a bit of an independent streak.
+
+Will that mix actually produce something usable? No idea.
 
 ## Project Plan
 
@@ -52,4 +54,4 @@ How am I going to accomplish this? I'm going to take this step by step, (no need
 * Put in hours of testing/updating code & hardware after testing
   * No idea how long this will take (probably longer than I think, tbh)
 
-That's probably good for now.
+That's probably good for now. Will update with more details if I ever get around to it.
