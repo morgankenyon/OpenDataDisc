@@ -55,3 +55,12 @@ How am I going to accomplish this? I'm going to take this step by step, (no need
   * No idea how long this will take (probably longer than I think, tbh)
 
 That's probably good for now. Will update with more details if I ever get around to it.
+
+## Hardware Components
+
+* Current [esp32 microcontroller](https://www.mouser.com/ProductDetail/Espressif-Systems/ESP32-S3-DevKitM-1-N8?qs=XAiT9M5g4x%2F0QWl%252BQomf2w%3D%3D)
+* Current [accelerometer](https://www.mouser.com/ProductDetail/Adafruit/3886?qs=xZ%2FP%252Ba9zWqYWl0i8uQS6xQ%3D%3D)
+* Other hardware
+  * Our current accelerometer has a [Qwiic connector ](https://www.mouser.com/ProductDetail/Adafruit/4209?qs=PzGy0jfpSMvCXPIwCvMoFg%3D%3D)
+  * Usb cable for esp32
+  * Random other wires for breadboard
