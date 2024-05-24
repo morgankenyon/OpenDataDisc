@@ -1,22 +1,29 @@
 # OpenDataDisc
 
-A github repo to document my exploration into creating an open source data tracking disc.
+An open platform that allows disc golfers to collect statistics about their throws.
+
+> Your throws, your platform, your data.
 
 ## Disc Golf + Analytics
 
 I'd love the ablity to track and measure my disc golf throws without spending tons of money.
 
-Would it be easier to buy one of the currently available products? Probably.
+* Would it be easier to buy one of the currently available products? Probably.
+* What's the likelihood this project never completes its goal? Higher than 0.
 
-What's the likelihood this project never goes anywhere? Higher than 0.
-
-So why I am doing it? I'm a sucker for starting something new, I'm a software developer, have started playing disc golf and have a bit of an independent streak.
+So why I am doing it? I'm a sucker for starting something new, I'm a software developer, have started playing disc golf and wanted a project to combine those 2.
 
 Will that mix actually produce something usable? No idea.
 
-## Project Plan
+## Current Project Status
 
-As of right now, this is just an idea. There's no disc, no tech, I've put no work into it. But, there is a semblance of a plan.
+Status: Early Alpha Stage
+
+At this point I just have a microcontroller, some sensors, and (not very much) code.
+
+No timeline on when early prototypes might be available.
+
+## Project Plan
 
 What do I need:
 

@@ -4,6 +4,8 @@ I'm trying to get bluetooth working between my Computer and my ESP32 microcontro
 
 I'm following [this tutorial](https://github.com/finallyfunctional/bluetooth-windows-esp32-example), and I had to make the following changes to get it building and running on my machine:
 
+### Computer Side of Things
+
 ## Download C++ Tools for Visual Studio 2022
 
 When I first loaded the project, I needed to install the C++ development tools. That was easy.
@@ -65,9 +67,47 @@ Then I could build and run the solution:
 
 ![sample output](image-2.png)
 
+### ESP Side of Things
+
+I didn't realize I the Esp32-S3 only uses Bluetooth 5, not bluetooth classic. The esp documentation is confusing.
+
+I checked my windows Bluetooth version by:
+
+* Going to device manager
+* Opening bluetooth
+* Going to advanced
+* Referencing the underscored version:
+
+![alt text](image-4.png)
+
+* Comparing it against the list located here:
+
+![alt text](image-5.png)
+[bluetooth versions](https://support.microsoft.com/en-us/windows/what-bluetooth-version-is-on-my-pc-f5d4cff7-c00d-337b-a642-d2d23b082793)
+
+
+### Running Code on ESP
+
+Found some documentation:
+
+https://github.com/nkolban/ESP32_BLE_Arduino/blob/master/examples/BLE_write/BLE_write.ino
+
+https://github.com/microsoft/Windows-universal-samples/tree/main
+
+https://github.com/sensboston/BLEConsole
+
+https://randomnerdtutorials.com/esp32-ble-server-client/
+
+### Debugging ESP Side of Things
+
+When using the BLEConsole to attempt to connect to ESP, I get the following errors:
+
+![alt text](image-6.png)
+
 ## Forked Repo with Fixes In It
 
 I'm thankful to [finally functional](https://github.com/finallyfunctional) for code on how to get started. I've forked his repo and included the 2 fixes I mentioned above in my fork. Hopefully this gives people enough info to avoid these same issues locally.
 
 * Original Repo: https://github.com/finallyfunctional/bluetooth-windows-esp32-example
 * Forked Repo: https://github.com/morgankenyon/bluetooth-windows-esp32-example
+
