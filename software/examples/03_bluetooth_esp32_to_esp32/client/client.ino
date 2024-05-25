@@ -50,7 +50,7 @@ boolean newNumber = false;
 bool connectToServer(BLEAddress pAddress) {
    BLEClient* pClient = BLEDevice::createClient();
  
-  // Connect to the remove BLE Server.
+  // Connect to the remote BLE Server.
   pClient->connect(pAddress);
   Serial.println(" - Connected to server");
  
