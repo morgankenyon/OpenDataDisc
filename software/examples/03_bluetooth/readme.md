@@ -98,6 +98,8 @@ https://github.com/sensboston/BLEConsole
 
 https://randomnerdtutorials.com/esp32-ble-server-client/
 
+https://github.com/pcbreflux/espressif/blob/master/esp32/app/ESP32_ble_i2c_ina219/main/GreatNeilKolbanLib/BLEAdvertising.h
+
 ### Debugging ESP Side of Things
 
 When using the BLEConsole to attempt to connect to ESP, I get the following errors:
@@ -111,3 +113,13 @@ I'm thankful to [finally functional](https://github.com/finallyfunctional) for c
 * Original Repo: https://github.com/finallyfunctional/bluetooth-windows-esp32-example
 * Forked Repo: https://github.com/morgankenyon/bluetooth-windows-esp32-example
 
+
+## Running
+
+Server: 
+
+![alt text](image-9.png)
+
+Client: 
+
+![alt text](image-8.png)

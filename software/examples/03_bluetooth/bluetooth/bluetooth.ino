@@ -40,10 +40,12 @@ uint32_t value = 0;
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
-      BLEDevice::startAdvertising();
+      Serial.println("connected");
+      //BLEDevice::startAdvertising();
     };
 
     void onDisconnect(BLEServer* pServer) {
+      Serial.println("disconnected");
       deviceConnected = false;
     }
 };
@@ -93,19 +95,22 @@ void loop() {
     if (deviceConnected) {
         pCharacteristic->setValue((uint8_t*)&value, 4);
         pCharacteristic->notify();
+        Serial.println("writing");
         value++;
         delay(10); // bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
     }
+
+    delay(100);
     // disconnecting
-    if (!deviceConnected && oldDeviceConnected) {
-        delay(500); // give the bluetooth stack the chance to get things ready
-        pServer->startAdvertising(); // restart advertising
-        Serial.println("start advertising");
-        oldDeviceConnected = deviceConnected;
-    }
+    //if (!deviceConnected && oldDeviceConnected) {
+    //    delay(500); // give the bluetooth stack the chance to get things ready
+    //    pServer->startAdvertising(); // restart advertising
+    //    Serial.println("start advertising");
+    //    oldDeviceConnected = deviceConnected;
+    //}
     // connecting
-    if (deviceConnected && !oldDeviceConnected) {
+    //if (deviceConnected && !oldDeviceConnected) {
         // do stuff here on connecting
-        oldDeviceConnected = deviceConnected;
-    }
+    //    oldDeviceConnected = deviceConnected;
+    //}
 }
