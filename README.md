@@ -16,9 +16,9 @@ So why I am doing it? I'm a sucker for starting something new, I'm a software de
 
 Will that mix actually produce something usable? No idea.
 
-## Current Project Status
+## Current Project Phase
 
-Status: Early Alpha Stage
+Phase: Getting to know hardware
 
 At this point I just have a microcontroller, some sensors, and (not very much) code.
 
