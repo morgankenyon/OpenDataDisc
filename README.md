@@ -24,45 +24,35 @@ At this point I just have a microcontroller, some sensors, and (not very much) c
 
 No timeline on when early prototypes might be available.
 
-## Project Plan
+## Project Phases (Somewhat flexible now)
 
-What do I need:
-
-* Some technology/hardware:
-  * Microcontroller
-  * Accelerometer
-  * Battery
-  * Connectors/cables
-  * Discs to test with
-* Some software:
-  * Code running on microcontroller to measure everything
-  * Code running on host computer to make sense of everything
-* Some misc. things:
-  * Software skills => I'm a programmer, but not a lot of experience with hardware/microcontroller.
-  * Some money => currently have some, no idea how long this might take
-  * Willpower, tenacity, drive, etc (How badly do I want it????)
-
-How am I going to accomplish this? I'm going to take this step by step, (no need to rush), document everything, and see where this lands.
-
-* Can I setup my microcontroller with an accelerometer?
-  * This gives me a baseline that I can wire up all the basic hardware components correctly
-  * Only concerned with measuring angle
-* Can I pair my microcontroller with a window's application?
-  * I need a host computer to sync my data with.
-* Explore battery power options
-  * If this is ever going to work, it needs to run on battery.
-  * Explore different options of powering microcontroller by battery.
-* Construct some type of portable housing for testing
-  * I need this thing to be portable to truly measure and verify everything I'm doing.
-  * Create something small that I can begin to put through the chops
-  * Measure RPMs of this portable device
-* Construct some QA (quality assurance) framework/system for verifying my work
-  * How do I know my RPMs, speed, angle, wobble are all accurate measurements?
-  * Will utilize external hardware to verify this work
-* Put in hours of testing/updating code & hardware after testing
-  * No idea how long this will take (probably longer than I think, tbh)
-
-That's probably good for now. Will update with more details if I ever get around to it.
+* Getting to know hardware (current phase)
+  * Buying the hardware I think I need.
+  * Hooking everything up.
+  * Getting data flowing between microcontroller and computer.
+  * Getting some basic calculations working
+* Simulating portions of a throw
+  * Before creating something that can go on a frisbee
+  * Can I simulating calculating RPM, angle, speed in an easier to create configuration
+  * Begin to implement procedures/protocols for verifying the measurements I'm taking
+    * Speed gun
+    * High speed camera ($$$ that I don't know)
+    * etc
+* Alpha Disc Setup
+  * Design something that could be attached to a frisbee
+  * Probably still using a development board.
+  * Probably will be pretty bulky.
+* Beta Disc Setup
+  * Create a more refined alpha setup
+  * Potentially look into creating a custom PCB to make everything smaller
+* Early Release Disc Setup
+  * Create something that people could actually try out.
+  * Communicate that it will probably still have flaws
+  * Might need a technical audience for this phase to help debug issues that come up
+* Real thing disc setup
+  * First proper product release
+  * Should be easy for non technical people to setup and use
+  * Lots of polish will need to happen before this is ready
 
 ## Hardware Components
 
