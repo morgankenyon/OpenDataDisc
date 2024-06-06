@@ -7,7 +7,7 @@
 
 /***
  * Morgan Kenyon
- * Integrating accelerometer sensor readings
+ * Trying out example in platformIO
  * 
  */
 
@@ -17,6 +17,7 @@
 #include <BLE2902.h>
 #include <Wire.h>
 #include <Arduino.h>
+#include <Adafruit_MPU6050.h>
 
 
 //BLE server name
@@ -45,6 +46,15 @@ BLECharacteristic bmeNumberCharacteristics(
   BLECharacteristic::PROPERTY_NOTIFY | 
   BLECharacteristic::PROPERTY_WRITE);
 BLEDescriptor bmeNumberDescriptor(BLEUUID((uint16_t)0x2902));
+
+//https://stackoverflow.com/a/75943324
+static void my_gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param) {
+    // Do stuff depending on event type
+    // Eg. 'listen' to GATT events in realtime (very star trek).
+    // tone(2000 + event*200, volume, delay);
+    
+    Serial.println("event");
+}
 
 //Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks: public BLEServerCallbacks {
@@ -92,6 +102,7 @@ void setup() {
   // Init BME Sensor
 
   // Create the BLE Device\
+  BLEDevice::setCustomGattsHandler(my_gatts_event_handler);
   BLEDevice::init(bleServerName);
 
   // Create the BLE Server

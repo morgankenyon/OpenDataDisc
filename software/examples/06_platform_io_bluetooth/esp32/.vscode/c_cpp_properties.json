@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "C:/dev/OpenDataDisc/software/examples/06_csharp_bluetooth/esp32/include",
-                "C:/dev/OpenDataDisc/software/examples/06_csharp_bluetooth/esp32/src",
+                "C:/dev/OpenDataDisc/software/examples/06_platform_io_bluetooth/esp32/include",
+                "C:/dev/OpenDataDisc/software/examples/06_platform_io_bluetooth/esp32/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
@@ -247,8 +247,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "C:/dev/OpenDataDisc/software/examples/06_csharp_bluetooth/esp32/include",
-                    "C:/dev/OpenDataDisc/software/examples/06_csharp_bluetooth/esp32/src",
+                    "C:/dev/OpenDataDisc/software/examples/06_platform_io_bluetooth/esp32/include",
+                    "C:/dev/OpenDataDisc/software/examples/06_platform_io_bluetooth/esp32/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
