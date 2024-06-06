@@ -3,7 +3,7 @@
 
 An open platform that allows disc golfers to collect statistics about their throws.
 
-> Your throws, your platform, your data.
+> Your throw, your platform, your data.
 
 ## Disc Golf + Analytics
 
