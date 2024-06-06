@@ -12,13 +12,24 @@ Basically the same exact setup, see past examples for how I did this.
 
 ## CSharp Client
 
-For this, created a simple console application.
+For this, 
 
-* Installed the [nuget library](https://www.nuget.org/packages/InTheHand.BluetoothLE)
 * Downloaded a 8.0 version of .NET SDK
-* Updated my version of Visual Studio
-* Opened in Visual Studio
-* 
+* Created a simple hello-world console application.
+* Installed the [nuget library](https://www.nuget.org/packages/InTheHand.BluetoothLE)
+* Opened in Visual Studio Code
+* Ran the following commands to build and run this application from the directory containing `OpenDataDisc.csproj`
+  * `dotnet build`
+  * `dotnet run`
+  * If you're using powershell, you can combine them into one command like `dotnet build; dotnet run`
+* Debugged the below issue
+* Went through the debugging cycle a bit.
+  * Read through the 32Feet documentation
+  * Learned about Event Handlers
+* Finally was able to read numbers in my windows client from my esp32.
+![2 lists of numbers](image.png)
+* Best of all, I can connect and disconnect from my esp32 as expected.
+  * I don't have to unplug it, or reset anything. Everything seems to be working smoothly.
 
 ### Runtime Issues
 
@@ -46,3 +57,24 @@ Unhandled exception. Tmds.DBus.ConnectException: No path specified for UNIX tran
 ```
 
 This [github issue](https://github.com/inthehand/32feet/issues/341) provided some tips. Specifying .net7 isn't viable anymore, since it's out of support.
+
+So I updated my csproj file to the following:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="InTheHand.BluetoothLE" Version="4.0.36" />
+  </ItemGroup>
+
+</Project>
+```
+
+I believe `<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>` was the crucial piece. Even though I'm running Windows 11.

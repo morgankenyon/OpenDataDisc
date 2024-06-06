@@ -14,12 +14,30 @@ var scanFilter = new BluetoothLEScanFilter
 scanFilter.Services.Add(serviceUuid);
 options.Filters.Add(scanFilter);
 
-static void NotifyEventHandler(object sender, EventArgs e)
+static void NotifyEventHandler(object? sender, GattCharacteristicValueChangedEventArgs e)
 {
-    Console.WriteLine("Received event");
+    if (e.Value != null)
+    {
+        var strReceived = System.Text.Encoding.Default.GetString(e.Value);
+        if (double.TryParse(strReceived, out var result))
+        {
+            Console.WriteLine($"Received - {result}");
+        }
+        else
+        {
+            Console.WriteLine($"Received - {e.Value} - {strReceived}");
+        }
+    }
+    else if (e.Error != null)
+    {
+        Console.WriteLine($"Received Error - {e.Error.Message}");
+    }
+    else
+    {
+        Console.WriteLine("Received message");
+    }
 }
 
-//options.AcceptAllDevices = true;
 BluetoothDevice device = await Bluetooth.RequestDeviceAsync(options);
 if (device != null)
 {
@@ -52,9 +70,10 @@ if (device != null)
                 Console.WriteLine("Stopping messages");
                 await characteristic.StopNotificationsAsync();
             }
-
-
         }
     }
+
+    //disconnect with done
+    device.Gatt.Disconnect();
 }
 Console.WriteLine("Wrapping up project");
