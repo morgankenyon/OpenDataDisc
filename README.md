@@ -32,14 +32,14 @@ No timeline on when early prototypes might be available.
   * Getting data flowing between microcontroller and computer.
   * Getting some basic calculations working
 * Simulating portions of a throw
-  * Before creating something that can go on a frisbee
+  * Before creating something that can go on a disc
   * Can I simulating calculating RPM, angle, speed in an easier to create configuration
   * Begin to implement procedures/protocols for verifying the measurements I'm taking
     * Speed gun
     * High speed camera ($$$ that I don't know)
     * etc
 * Alpha Disc Setup
-  * Design something that could be attached to a frisbee
+  * Design something that could be attached to a disc
   * Probably still using a development board.
   * Probably will be pretty bulky.
 * Beta Disc Setup
