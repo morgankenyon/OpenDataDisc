@@ -1,9 +1,9 @@
 
 # OpenDataDisc
 
-An open platform that allows disc golfers to collect statistics about their throws.
+An open platform that allows disc golfers to collect their throw statistics.
 
-> Your throw, your platform, your data.
+> Your throw, your data, your platform.
 
 ## Disc Golf + Analytics
 
