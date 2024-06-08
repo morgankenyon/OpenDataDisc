@@ -25,7 +25,7 @@ static void NotifyEventHandler(object? sender, GattCharacteristicValueChangedEve
         }
         else
         {
-            Console.WriteLine($"Received - {e.Value} - {strReceived}");
+            Console.WriteLine($"Received - '{strReceived}'");
         }
     }
     else if (e.Error != null)

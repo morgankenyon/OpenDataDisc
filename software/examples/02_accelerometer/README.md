@@ -59,7 +59,8 @@ I had several issues I encountered while doing this project:
 * When I uploaded my sketch, I got the following error:
   * "Failed to find MPU 6050 chip"
 ![error](image-2.png)
-  * I had to tell the Adafruit library which port I was using.
+  * `Failed to find MPU6050 chip`
+  * I had to tell the Adafruit library which pin I was using.
   * This was accomplished by the following line of code `Wire.begin(6, 5);`, see sketch for reference.
 
 Once I fixed all those things, everything worked.

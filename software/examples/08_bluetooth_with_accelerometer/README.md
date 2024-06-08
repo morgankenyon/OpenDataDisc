@@ -9,8 +9,9 @@ Overall, starting with same code that I had in example 7. And just adding accele
 ## Esp32 Setup
 
 * Setup platformIO
-* Push code.
-* 
+* Integrate Accelerometer code from example 2
+* Upload to board
+  * `pio run --target upload`
 
 ## Issues
 
@@ -22,4 +23,4 @@ Adafruit_MPU6050.h:21:10: fatal error: Adafruit_BusIO_Register.h: No such file o
 
 I had to install both the Adafruit dependency in my `platformio.ini`, as well as copy this header `#include <Adafruit_MPU6050.h>` into my `main.cpp`.
 
-I find it a little odd that code changes dependency resolution, but who knows the reason.
+I find it a little odd that this code change affected dependency resolution, but who knows the reason.

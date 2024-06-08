@@ -7,7 +7,7 @@
 
 /***
  * Morgan Kenyon
- * Trying out example in platformIO
+ * Trying out example in platformIO, example 8
  * 
  */
 
@@ -19,16 +19,16 @@
 #include <Arduino.h>
 #include <Adafruit_MPU6050.h>
 
-
+Adafruit_MPU6050 mpu;
 //BLE server name
 #define bleServerName "ESP32_Server"
 
 float num;
 
 // Timer variables
-unsigned long lastTime = 0;
-unsigned long lastWriteOperation = 0;
-unsigned long timerDelay = 3000;
+//unsigned long lastTime = 0;
+//unsigned long lastWriteOperation = 0;
+//unsigned long timerDelay = 3000;
 
 bool deviceConnected = false;
 bool oldDeviceConnected = false;//added
@@ -68,14 +68,14 @@ class MyServerCallbacks: public BLEServerCallbacks {
   }
 };
 
-class CharacterCallbacks: public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pCharacteristic) {
-      std::string rxValue = pCharacteristic->getValue();
-      Serial.print("value received = ");
-      Serial.println(rxValue.c_str());
-      lastWriteOperation = millis();
-  }
-};
+// class CharacterCallbacks: public BLECharacteristicCallbacks {
+//   void onWrite(BLECharacteristic* pCharacteristic) {
+//       std::string rxValue = pCharacteristic->getValue();
+//       Serial.print("value received = ");
+//       Serial.println(rxValue.c_str());
+//       //lastWriteOperation = millis();
+//   }
+// };
 
 //https://forum.arduino.cc/t/esp32-ble-does-not-disconnect/957235
 void checkToReconnect() //added
@@ -98,9 +98,78 @@ void checkToReconnect() //added
 void setup() {
   // Start serial communication 
   Serial.begin(115200);
+  Wire.begin(6, 5);
 
   // Init BME Sensor
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
+  Serial.println("MPU6050 Found!");
 
+  //accelerometer setup
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  Serial.print("Accelerometer range set to: ");
+  switch (mpu.getAccelerometerRange()) {
+  case MPU6050_RANGE_2_G:
+    Serial.println("+-2G");
+    break;
+  case MPU6050_RANGE_4_G:
+    Serial.println("+-4G");
+    break;
+  case MPU6050_RANGE_8_G:
+    Serial.println("+-8G");
+    break;
+  case MPU6050_RANGE_16_G:
+    Serial.println("+-16G");
+    break;
+  }
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu.getGyroRange()) {
+  case MPU6050_RANGE_250_DEG:
+    Serial.println("+- 250 deg/s");
+    break;
+  case MPU6050_RANGE_500_DEG:
+    Serial.println("+- 500 deg/s");
+    break;
+  case MPU6050_RANGE_1000_DEG:
+    Serial.println("+- 1000 deg/s");
+    break;
+  case MPU6050_RANGE_2000_DEG:
+    Serial.println("+- 2000 deg/s");
+    break;
+  }
+
+  mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu.getFilterBandwidth()) {
+  case MPU6050_BAND_260_HZ:
+    Serial.println("260 Hz");
+    break;
+  case MPU6050_BAND_184_HZ:
+    Serial.println("184 Hz");
+    break;
+  case MPU6050_BAND_94_HZ:
+    Serial.println("94 Hz");
+    break;
+  case MPU6050_BAND_44_HZ:
+    Serial.println("44 Hz");
+    break;
+  case MPU6050_BAND_21_HZ:
+    Serial.println("21 Hz");
+    break;
+  case MPU6050_BAND_10_HZ:
+    Serial.println("10 Hz");
+    break;
+  case MPU6050_BAND_5_HZ:
+    Serial.println("5 Hz");
+    break;
+  }
+
+  //bluetooth setup
   // Create the BLE Device\
   BLEDevice::setCustomGattsHandler(my_gatts_event_handler);
   BLEDevice::init(bleServerName);
@@ -118,7 +187,7 @@ void setup() {
   bmeService->addCharacteristic(&bmeNumberCharacteristics);
   bmeNumberDescriptor.setValue("BME Number");
   bmeNumberCharacteristics.addDescriptor(&bmeNumberDescriptor);
-  bmeNumberCharacteristics.setCallbacks(new CharacterCallbacks());
+  //bmeNumberCharacteristics.setCallbacks(new CharacterCallbacks());
 
   
   // Start the service
@@ -135,19 +204,48 @@ void loop() {
   checkToReconnect();
   
   if (deviceConnected) {
-      num = num + 1;
-  
-      //Notify number reading
-      static char numberTemp[6];
-      dtostrf(num, 6, 2, numberTemp);
-      //Set Number Characteristic value and notify connected client
-      bmeNumberCharacteristics.setValue(numberTemp);
-      bmeNumberCharacteristics.notify();
-      Serial.print("Number: ");
-      Serial.println(num);
-      
-      
-      lastTime = millis();
+    //read accelerometer data
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+
+    //acceleration measurements
+    //following https://forum.arduino.cc/t/concatenating-multiple-float-variables-with-limiter-to-char-array/311300/5
+    char accX[7];
+    char accY[7];
+    char accZ[7];
+
+    dtostrf(a.acceleration.x, 6, 2, accX);
+    dtostrf(a.acceleration.y, 6, 2, accY);
+    dtostrf(a.acceleration.z, 6, 2, accZ);
+
+    char rotX[7];
+    char rotY[7];
+    char rotZ[7];
+    dtostrf(g.gyro.x, 6, 2, rotX);
+    dtostrf(g.gyro.y, 6, 2, rotY);
+    dtostrf(g.gyro.z, 6, 2, rotZ);
+
+    char sensorBuffer[strlen(accX) + strlen(accY) + strlen(accZ) + strlen(rotX) + strlen(rotY) + strlen(rotZ) + 5];
+
+    sprintf(sensorBuffer, "Acc:%s,%s,%s, Rot:%s,%s,%s", accX, accY, accZ, rotX, rotY, rotZ);
+
+    bmeNumberCharacteristics.setValue(sensorBuffer);
+    bmeNumberCharacteristics.notify();
+
+    // //old notify code
+    // num = num + 1;
+
+    // //Notify number reading
+    // static char numberTemp[6];
+    // dtostrf(num, 6, 2, numberTemp);
+    // //Set Number Characteristic value and notify connected client
+    // // bmeNumberCharacteristics.setValue(numberTemp);
+    // // bmeNumberCharacteristics.notify();
+    // Serial.print("Number: ");
+    // Serial.println(num);
+    
+    
+    // lastTime = millis();
   }
   else
   {
@@ -155,5 +253,5 @@ void loop() {
     delay(1000);
   }
 
-  delay(100);
+  delay(500);
 }
