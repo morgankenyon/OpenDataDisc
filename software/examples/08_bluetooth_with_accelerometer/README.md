@@ -10,8 +10,15 @@ Overall, starting with same code that I had in example 7. And just adding accele
 
 * Setup platformIO
 * Integrate Accelerometer code from example 2
+  * Change the output from example 2 to the sensor data
+  * Google how to convert floats to string in C++ (been a long time)
 * Upload to board
   * `pio run --target upload`
+* Multiple rounds of debugging
+* Confirm working
+* Clean up code so not more references to example 2 stuff
+* Success
+
 
 ## Issues
 
