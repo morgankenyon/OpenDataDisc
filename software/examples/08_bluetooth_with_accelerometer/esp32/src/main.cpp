@@ -46,6 +46,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
   void onConnect(BLEServer* bleServer) {
     Serial.println("connected");
     deviceConnected = true;
+    oldDeviceConnected = true;
   };
   void onDisconnect(BLEServer* bleServer) {
     Serial.println("disconnected");
