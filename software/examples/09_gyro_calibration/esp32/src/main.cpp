@@ -7,7 +7,7 @@
 
 /***
  * Morgan Kenyon
- * example 8, sending sensor data over bluetooth
+ * example 9, gyro calibration
  * 
  */
 
