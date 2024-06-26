@@ -10,7 +10,6 @@
             "includePath": [
                 "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/include",
                 "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/src",
-                "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                 "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit MPU6050",
                 "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit Unified Sensor",
                 "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit BusIO",
@@ -219,6 +218,7 @@
                 "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit SSD1306",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
+                "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BluetoothSerial/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
                 "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
@@ -254,7 +254,6 @@
                 "path": [
                     "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/include",
                     "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/src",
-                    "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                     "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit MPU6050",
                     "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit Unified Sensor",
                     "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit BusIO",
@@ -463,6 +462,7 @@
                     "C:/dev/OpenDataDisc/software/examples/10_accelerometer_angles/esp32/.pio/libdeps/esp32-s3-devkitc-1/Adafruit SSD1306",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
+                    "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/BluetoothSerial/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
                     "C:/Users/morga/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",

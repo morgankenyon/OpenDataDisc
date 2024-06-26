@@ -15,3 +15,11 @@ https://www.youtube.com/watch?v=yhz3bRQLvBY ~ 4:44 mark
 * +/- 16g - 2048 LSB/g
 
 https://www.youtube.com/watch?v=7VW_XVbtu9k ~ 7:53 mark
+
+## Future Sensors
+
+* [High G Single Axis Accelerometer](https://www.sparkfun.com/products/retired/9332)
+  * Discontinued, but I could potentially use 2 of these to build a high G sensor.
+* [High Performace Gyroscope](https://www.mouser.com/ProductDetail/Analog-Devices/ADXRS649BBGZ?qs=WIvQP4zGanhEKWMUW9AK8A%3D%3D)
+  * Maybe combine with above to create my own IMU, idk.
+  
