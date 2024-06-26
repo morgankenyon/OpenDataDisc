@@ -22,4 +22,5 @@ https://www.youtube.com/watch?v=7VW_XVbtu9k ~ 7:53 mark
   * Discontinued, but I could potentially use 2 of these to build a high G sensor.
 * [High Performace Gyroscope](https://www.mouser.com/ProductDetail/Analog-Devices/ADXRS649BBGZ?qs=WIvQP4zGanhEKWMUW9AK8A%3D%3D)
   * Maybe combine with above to create my own IMU, idk.
-  
+* [200 g sensors](https://www.mouser.com/c/sensors/motion-position-sensors/accelerometers/?acceleration=200%20g)
+  * There does seem to be some 200 g sensors that are relatively affordable that I could buy and create my own breadboard for.
