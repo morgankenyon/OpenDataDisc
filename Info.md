@@ -24,3 +24,13 @@ https://www.youtube.com/watch?v=7VW_XVbtu9k ~ 7:53 mark
   * Maybe combine with above to create my own IMU, idk.
 * [200 g sensors](https://www.mouser.com/c/sensors/motion-position-sensors/accelerometers/?acceleration=200%20g)
   * There does seem to be some 200 g sensors that are relatively affordable that I could buy and create my own breadboard for.
+* [Replacement for mpu 6050](https://www.mouser.com/ProductDetail/TDK-InvenSense/ICM-42605?qs=gZXFycFWdAO0MPgeewGYjQ%3D%3D)
+  * Seems like the mpu 6050 is old
+
+## Battery Info
+
+* Resources
+  * https://www.youtube.com/watch?v=vBIE0agqBW0
+    * Considerations with UL - https://www.autodesk.com/products/fusion-360/blog/ul-certification-for-electronics-design/
+    * A lot of big box stores require UL listings for general safety concerns
+    * 
