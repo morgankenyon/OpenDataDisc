@@ -34,3 +34,17 @@ https://www.youtube.com/watch?v=7VW_XVbtu9k ~ 7:53 mark
     * Considerations with UL - https://www.autodesk.com/products/fusion-360/blog/ul-certification-for-electronics-design/
     * A lot of big box stores require UL listings for general safety concerns
     * 
+
+## I2C Article
+
+https://howtomechatronics.com/tutorials/arduino/how-i2c-communication-works-and-how-to-use-it-with-arduino/
+
+## Antenna
+
+This is a similar Antenna to the one used in the TinyPico.
+
+* https://www.mouser.com/ProductDetail/Ignion/NN02-101?qs=ljCeji4nMDmLFkk%252ByszMQQ%3D%3D
+* https://www.mouser.com/ProductDetail/Ignion/NN02-101?qs=ljCeji4nMDmLFkk%252ByszMQQ%3D%3D
+* https://www.mouser.com/catalog/additional/Ignion_UM_NN02_101.pdf
+* Do it yourself: https://www.youtube.com/watch?v=yxU_Kw2de08
+* This is the one used in the Tiny Pico, but it's discontinueud: https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/693/NN01-102_Jan2021.pdf
