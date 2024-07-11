@@ -15,7 +15,9 @@ Now that we've got the blink working on the nrf52 Sense. I want to start working
 * Use the code provided in this example
 * Upload to board
 * Open serial plotter, ensure Baud rate is 115200 (matching what is in the `setup()` method)
-* Should see printout of accelerometer values
+* Should see printout of accelerometer values:
+![accelerometer values](image-1.png)
+  * My board sowed up on either COM4 or COM6. Arduino should let you select the correct one.
 ## Issues
 
 
