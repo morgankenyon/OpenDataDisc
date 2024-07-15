@@ -1,6 +1,6 @@
 # The NRF52 IMU
 
-Now that we've got the blink working on the nrf52 Sense. I want to start working on using the accelerometer/gyro.
+Now that we've got the blink working on the nrf52 Sense. I want to start working on using the accelerometer/gyro. Dropping back to Arduino just to get something working since there are examples for that.
 
 ## What I Did
 
@@ -18,8 +18,6 @@ Now that we've got the blink working on the nrf52 Sense. I want to start working
 * Should see printout of accelerometer values:
 ![accelerometer values](image-1.png)
   * My board sowed up on either COM4 or COM6. Arduino should let you select the correct one.
-## Issues
-
 
 ## Resources
 

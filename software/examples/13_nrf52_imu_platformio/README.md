@@ -1,11 +1,19 @@
 # The NRF52 IMU
 
-Now that we've got the blink working on the nrf52 Sense. I want to start working on using the accelerometer/gyro.
+Now that we've got the IMU working in Arudino, replicate that same example in platformIO.
 
-## Issues
+## Steps
 
-* Failed to initialize IMU!
-  * When I first tried to run it, it didn't recognize the IMU
+* Adding library reference in the [platformio.ini](./nrf52/platformio.ini)
+  * 
+* Run `pio run --target upload` to upload code to the Seeed board.
+* And open the serial monitor in Visual Studio Code,
+  * Ensuring the baud rate matches.
+  * Success!!!
+
+![imu printouts](image.png)
+
+Still need work in calibrating sensor and potentially normalizing the sensor values. Further work.
 
 ## Resources
 
