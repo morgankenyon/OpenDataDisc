@@ -1,39 +1,57 @@
-/*
-Getting my IMU working inside the NRF52 Sense
-https://github.com/arduino-libraries/Arduino_LSM6DS3/blob/master/examples/SimpleAccelerometer/SimpleAccelerometer.ino
-*/
+/*****************************************************************************/
+//Code taken from Arduino example, now trying to use it in platformIO
+/*******************************************************************************/
+
 #include "Arduino.h"
-#include <Arduino_LSM6DS3.h>
+#include "LSM6DS3.h"
 #include "Wire.h"
 
+//Create a instance of class LSM6DS3
+LSM6DS3 myIMU(I2C_MODE, 0x6A);    //I2C device address 0x6A
+
+
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
-
-  if (!IMU.begin()) {
-    Serial.println("Failed to initialize IMU!");
-
-    while (1);
-  }
-
-  Serial.print("Accelerometer sample rate = ");
-  Serial.print(IMU.accelerationSampleRate());
-  Serial.println(" Hz");
-  Serial.println();
-  Serial.println("Acceleration in g's");
-  Serial.println("X\tY\tZ");
+    pinMode(LED_BUILTIN, OUTPUT);
+    // put your setup code here, to run once:
+    Serial.begin(115200);
+    while (!Serial);
+    //Call .begin() to configure the IMUs
+    if (myIMU.begin() != 0) {
+        Serial.println("Device error");
+    } else {
+        Serial.println("Device OK!");
+    }
 }
 
 void loop() {
-  float x, y, z;
+    //Accelerometer
+    Serial.print("\nAccelerometer:\n");
+    Serial.print(" X1 = ");
+    Serial.println(myIMU.readFloatAccelX(), 4);
+    Serial.print(" Y1 = ");
+    Serial.println(myIMU.readFloatAccelY(), 4);
+    Serial.print(" Z1 = ");
+    Serial.println(myIMU.readFloatAccelZ(), 4);
 
-  if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
+    //Gyroscope
+    Serial.print("\nGyroscope:\n");
+    Serial.print(" X1 = ");
+    Serial.println(myIMU.readFloatGyroX(), 4);
+    Serial.print(" Y1 = ");
+    Serial.println(myIMU.readFloatGyroY(), 4);
+    Serial.print(" Z1 = ");
+    Serial.println(myIMU.readFloatGyroZ(), 4);
 
-    Serial.print(x);
-    Serial.print('\t');
-    Serial.print(y);
-    Serial.print('\t');
-    Serial.println(z);
-  }
+    //Thermometer
+    Serial.print("\nThermometer:\n");
+    Serial.print(" Degrees C1 = ");
+    Serial.println(myIMU.readTempC(), 4);
+    Serial.print(" Degrees F1 = ");
+    Serial.println(myIMU.readTempF(), 4);
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    delay(1000);
 }
