@@ -37,6 +37,7 @@ No timeline on when early prototypes might be available.
     * Hardware is also cheaper.
     * Will probably be using as many off the shelf parts as possible. (Nothing really custom designed)
   * Create a developer kit that can be used for putters.
+    * Not something that would probably be widely available, but might create some dev kits for technical people wanting to help.
   * Need some hardware to confirm the sensor values.
     * Speed gun, high speed camera, etc
   * Most R&D on this project will be based on this platform.
