@@ -31,48 +31,35 @@ No timeline on when early prototypes might be available.
   * Hooking everything up.
   * Getting data flowing between microcontroller and computer.
   * Getting some basic calculations working
-* Simulating portions of a throw
-  * Before creating something that can go on a disc
-  * Can I simulating calculating RPM, angle, speed in an easier to create configuration
-  * Begin to implement procedures/protocols for verifying the measurements I'm taking
-    * Speed gun
-    * High speed camera ($$$ that I don't know)
-    * etc
-* Alpha Disc Setup
-  * Design something that could be attached to a disc
-  * Probably still using a development board.
-  * Probably will be pretty bulky.
-* Beta Disc Setup
+* Putter version
+  * Putts have slow RPMs and low Gs
+    * These values are much easier to measure and test.
+    * Hardware is also cheaper.
+    * Will probably be using as many off the shelf parts as possible. (Nothing really custom designed)
+  * Create a developer kit that can be used for putters.
+    * Not something that would probably be widely available, but might create some dev kits for technical people wanting to help.
+  * Need some hardware to confirm the sensor values.
+    * Speed gun, high speed camera, etc
+  * Most R&D on this project will be based on this platform.
+* Alpha Driver Disc
+  * To develop something to track high speed throws, will probably need:
+    * Custom hardware
+    * Beefed up software
+    * More expensive testing equipment
+* Beta Driver Disc
   * Create a more refined alpha setup
-  * Potentially look into creating a custom PCB to make everything smaller
-* Early Release Disc Setup
-  * Create something that people could actually try out.
-  * Communicate that it will probably still have flaws
-  * Might need a technical audience for this phase to help debug issues that come up
-* Real thing disc setup
+  * Any problems I encountered in the Alpha disc can be changed here
+* Driver Disc
   * First proper product release
   * Should be easy for non technical people to setup and use
   * Lots of polish will need to happen before this is ready
 
 ## Hardware Components
 
-* Current [esp32 microcontroller](https://www.mouser.com/ProductDetail/Espressif-Systems/ESP32-S3-DevKitM-1-N8?qs=XAiT9M5g4x%2F0QWl%252BQomf2w%3D%3D)
-* Current [accelerometer](https://www.mouser.com/ProductDetail/Adafruit/3886?qs=xZ%2FP%252Ba9zWqYWl0i8uQS6xQ%3D%3D)
-* Other hardware
-  * Our current accelerometer has a [Qwiic connector ](https://www.mouser.com/ProductDetail/Adafruit/4209?qs=PzGy0jfpSMvCXPIwCvMoFg%3D%3D)
-  * Usb cable for esp32
-  * Random other wires for breadboard
-
-### Changes needed/Notes
-
-* New Accelerometer
-  * The Accelerometer listed above only supports up to 2,000 deg/s, which is ~333 RPM. Disc golf throws can go upwards of 1500 RPM. So that won't work long term.
-  * I found [this gyroscope](https://www.mouser.com/ProductDetail/Analog-Devices/ADXRS649BBGZ?qs=WIvQP4zGanhEKWMUW9AK8A%3D%3D) that supports up to 20,000 deg/s, which is ~3,333 RPM, more than enough. It's just ~$120ish bucks.
-* G forces found in disc golf throws.
-  * [Here's a link](https://www.reddit.com/r/discgolf/comments/13fbddc/comment/jjxg0cy/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) stating a throw can generate up to 175 Gs.
-
-## Things to Explore
-
-https://github.com/dotnet-bluetooth-le/dotnet-bluetooth-le/
-
-https://github.com/microsoft/Windows-universal-samples/tree/main/Samples/BluetoothLE
+Currently I'm using the following:
+* Brains - a [Xiao NRF52 Sense](https://www.seeedstudio.com/Seeed-XIAO-BLE-Sense-nRF52840-p-5253.html)
+  * Earlier I used an esp32 microcontroller, but since I didn't need wifi moved to something that fit my requirements and will have longer battery life.
+  * This board includes an IMU, USB and LiIon charging circuits built in
+* Power - exploring this [110 mAh LiIon battery](https://www.mouser.com/ProductDetail/SparkFun/PRT-13853?qs=wwacUt%252BV97vyGHIz/Bmbzw%3D%3D&countryCode=US&currencyCode=USD), still in the early phases of testing this.
+* Casing - TBD
+  * Currently have not tried putting my stuff on a disc
