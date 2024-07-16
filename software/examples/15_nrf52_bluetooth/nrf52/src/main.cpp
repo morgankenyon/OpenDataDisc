@@ -81,15 +81,6 @@ void loop() {
       Serial.println("writing value");
 
       nrf52Characteristic.writeValue((byte)0x4f);
-      // if (nrf52Characteristic.written()) {
-      //   if (nrf52Characteristic.value()) {   
-      //     Serial.println("LED on");
-      //     digitalWrite(ledPin, LOW); // changed from HIGH to LOW       
-      //   } else {                              
-      //     Serial.println(F("LED off"));
-      //     digitalWrite(ledPin, HIGH); // changed from LOW to HIGH     
-      //   }
-      // }
       delay(1000);
     }
 
