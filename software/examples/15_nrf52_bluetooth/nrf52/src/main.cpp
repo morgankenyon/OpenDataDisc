@@ -9,7 +9,7 @@
 
 BLEService nrf52Service("900e9509-a0b2-4d89-9bb6-b5e011e758b0");
 
-BLEByteCharacteristic nrf52Characteristic("6ef4cd45-7223-43b2-b5c9-d13410b494f5", BLERead | BLEWrite | BLENotify | BLEIndicate);
+BLECharacteristic nrf52Characteristic("6ef4cd45-7223-43b2-b5c9-d13410b494f5", BLERead | BLEWrite | BLENotify | BLEIndicate, "nrf52Characteristic");
 BLEDescriptor nrf52Descriptor("57be2a28-fdf9-4cfd-8bbe-79a86d68765d","NRF52Descriptor");
 const int ledPin = LED_BUILTIN; // pin to use for the LED
 
@@ -56,7 +56,6 @@ void setup() {
   BLE.addService(nrf52Service);
 
   // set the initial value for the characeristic:
-  nrf52Characteristic.writeValue(0);
   nrf52Characteristic.addDescriptor(nrf52Descriptor);
 
   // start advertising
@@ -66,9 +65,17 @@ void setup() {
 }
 
 void loop() {
-  // listen for Bluetooth® Low Energy peripherals to connect:
   Serial.println("Trying to listen");
   BLEDevice central = BLE.central();
+  byte outgoing[8];
+  outgoing[0] = 0x44; //D
+  outgoing[1] = 0x61; //a
+  outgoing[2] = 0x74; //t
+  outgoing[3] = 0x61; //a
+  outgoing[4] = 0x44; //D
+  outgoing[5] = 0x69; //i
+  outgoing[6] = 0x73; //s
+  outgoing[7] = 0x63; //c
 
   // if a central is connected to peripheral:
   if (central) {
@@ -80,7 +87,7 @@ void loop() {
     while (central.connected()) {
       Serial.println("writing value");
 
-      nrf52Characteristic.writeValue((byte)0x4f);
+      nrf52Characteristic.writeValue(outgoing, 8);
       delay(1000);
     }
 
