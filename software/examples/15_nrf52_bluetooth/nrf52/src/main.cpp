@@ -30,7 +30,6 @@ void disconnectHandler(BLEDevice central) {
 
 void setup() {
   Serial.begin(125000);
-  //while (!Serial);
 
   // set LED pin to output mode
   pinMode(ledPin, OUTPUT);
@@ -65,27 +64,27 @@ void setup() {
 }
 
 void loop() {
-  //Serial.println("Trying to listen");
+  Serial.println("Trying to listen");
   BLEDevice central = BLE.central();
   String value = "DataDisc";
 
   // if a central is connected to peripheral:
   if (central) {
-    // Serial.print("Connected to central: ");
-    // // print the central's MAC address:
-    // Serial.println(central.address());
+    Serial.print("Connected to central: ");
+    // print the central's MAC address:
+    Serial.println(central.address());
 
     // while the central is still connected to peripheral:
     while (central.connected()) {
-      //Serial.println("writing value");
+      Serial.println("writing value");
 
       nrf52Characteristic.writeValue(value);
       delay(1000);
     }
 
     // when the central disconnects, print it out:
-    // Serial.print(F("Disconnected from central: "));
-    // Serial.println(central.address());
+    Serial.print(F("Disconnected from central: "));
+    Serial.println(central.address());
   }
 
   delay(3000);
