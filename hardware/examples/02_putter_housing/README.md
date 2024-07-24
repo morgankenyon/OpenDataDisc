@@ -10,7 +10,10 @@ Tinkercad link: https://www.tinkercad.com/things/eYMJKqX6BG7-incredible-lappi/ed
 
 ![putter 3d design](image.png)
 
-It has 4 screw holes to attach the PCB, a well for the battery and 2 spacers to ensure nothing damages the circuit board
+It has 4 screw holes to attach the PCB, a well for the battery and 2 spacers to ensure nothing damages the circuit board.
+
+The 3d design is contained in the [Putter Housing v2.zip](./Putter%20Housing%20v2.zip) file for anyone interested in making their own.
+
 ## Resources
 
 * Metric Nut Dimensions - https://amesweb.info/Fasteners/Nut/Metric-Hex-Nut-Sizes-Dimensions-Chart.aspx
