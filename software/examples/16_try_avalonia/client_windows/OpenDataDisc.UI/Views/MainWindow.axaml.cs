@@ -3,10 +3,9 @@ using OpenDataDisc.UI.ViewModels;
 using OpenDataDisc.UI;
 using ReactiveUI;
 using System.Threading.Tasks;
-using OpenDataDisc.ViewModels;
 using Avalonia.ReactiveUI;
 
-namespace OpenDataDisc.Views;
+namespace OpenDataDisc.UI.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {

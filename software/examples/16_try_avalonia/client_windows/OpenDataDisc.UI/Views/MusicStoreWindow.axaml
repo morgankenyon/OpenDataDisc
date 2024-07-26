@@ -2,8 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:views="using:OpenDataDisc.UI.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="OpenDataDisc.UI.MusicStoreWindow"
+        x:Class="OpenDataDisc.UI.Views.MusicStoreWindow"
         Title="MusicStoreWindow"
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
@@ -21,7 +22,7 @@
 		</ExperimentalAcrylicBorder>
 
 		<Panel Margin="40">
-
+            <views:MusicStoreView/>
 		</Panel>
 	</Panel>
 </Window>

@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using OpenDataDisc.ViewModels;
-using OpenDataDisc.Views;
+using OpenDataDisc.UI.ViewModels;
+using OpenDataDisc.UI.Views;
 
-namespace OpenDataDisc;
+namespace OpenDataDisc.UI;
 
 public partial class App : Application
 {

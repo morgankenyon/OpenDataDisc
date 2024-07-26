@@ -2,7 +2,7 @@
 using Avalonia.ReactiveUI;
 using System;
 
-namespace OpenDataDisc;
+namespace OpenDataDisc.UI;
 
 sealed class Program
 {

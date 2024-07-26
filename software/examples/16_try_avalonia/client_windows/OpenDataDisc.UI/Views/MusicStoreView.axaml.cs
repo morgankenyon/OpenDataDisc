@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace OpenDataDisc.UI;
+namespace OpenDataDisc.UI.Views;
 
-public partial class MusicStoreWindow : Window
+public partial class MusicStoreView : UserControl
 {
-    public MusicStoreWindow()
+    public MusicStoreView()
     {
         InitializeComponent();
     }
