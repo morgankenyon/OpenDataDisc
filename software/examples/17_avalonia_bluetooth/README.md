@@ -6,3 +6,4 @@ My first attempt to get bluetooth working with Avalonia. I'm basically going to 
 
 * Example 15
 * Example 16
+* Avalonia Music Store Tutorial - https://docs.avaloniaui.net/docs/tutorials/music-store-app/creating-the-project

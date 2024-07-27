@@ -11,12 +11,16 @@ namespace OpenDataDisc.UI.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     public ICommand BuyMusicCommand { get; }
+    public ICommand SelectBluetoothDeviceCommand { get; }
     public Interaction<MusicStoreViewModel, AlbumViewModel?> ShowDialog { get; }
+    public Interaction<BluetoothSelectorViewModel, BluetoothSelectedViewModel?> ShowBluetoothDialog { get; }
+
     public ObservableCollection<AlbumViewModel> Albums { get; } = new();
 
     public MainWindowViewModel()
     {
         ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
+        ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, BluetoothSelectedViewModel?>();
 
         BuyMusicCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -29,6 +33,13 @@ public class MainWindowViewModel : ViewModelBase
                 Albums.Add(result);
                 await result.SaveToDiskAsync();
             }
+        });
+
+        SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            var bluetooth = new BluetoothSelectorViewModel();
+
+            var result = await ShowBluetoothDialog.Handle(bluetooth);
         });
 
         RxApp.MainThreadScheduler.Schedule(LoadAlbums);

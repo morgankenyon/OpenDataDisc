@@ -1,9 +1,7 @@
-using Avalonia.Controls;
+using Avalonia.ReactiveUI;
 using OpenDataDisc.UI.ViewModels;
-using OpenDataDisc.UI;
 using ReactiveUI;
 using System.Threading.Tasks;
-using Avalonia.ReactiveUI;
 
 namespace OpenDataDisc.UI.Views;
 
@@ -15,6 +13,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         this.WhenActivated(action =>
             action(ViewModel!.ShowDialog.RegisterHandler(DoShowDialogAsync)));
+
+        this.WhenActivated(action =>
+            action(ViewModel!.ShowBluetoothDialog.RegisterHandler(DoShowBluetoothSelectorAsync)));
     }
 
     private async Task DoShowDialogAsync(InteractionContext<MusicStoreViewModel,
@@ -25,5 +26,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         var result = await dialog.ShowDialog<AlbumViewModel?>(this);
         interaction.SetOutput(result);
+    }
+
+    private async Task DoShowBluetoothSelectorAsync(InteractionContext<BluetoothSelectorViewModel,
+        BluetoothSelectedViewModel?> interaction)
+    {
+        var dialog = new BluetoothSelectorWindow();
+        dialog.DataContext = interaction.Input;
+
+        var result = await dialog.ShowDialog<BluetoothSelectedViewModel?>(this);
+        interaction.SetOutput(result);
+
     }
 }
