@@ -22,7 +22,7 @@
 		</ExperimentalAcrylicBorder>
 
 		<Panel Margin="40">
-			<!--<views:MusicStoreView/>-->
+			<views:BluetoothSelectorView/>
 		</Panel>
 	</Panel>
 </Window>

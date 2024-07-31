@@ -13,14 +13,14 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand BuyMusicCommand { get; }
     public ICommand SelectBluetoothDeviceCommand { get; }
     public Interaction<MusicStoreViewModel, AlbumViewModel?> ShowDialog { get; }
-    public Interaction<BluetoothSelectorViewModel, BluetoothSelectedViewModel?> ShowBluetoothDialog { get; }
+    public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
 
     public ObservableCollection<AlbumViewModel> Albums { get; } = new();
 
     public MainWindowViewModel()
     {
         ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
-        ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, BluetoothSelectedViewModel?>();
+        ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
 
         BuyMusicCommand = ReactiveCommand.CreateFromTask(async () =>
         {

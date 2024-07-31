@@ -29,12 +29,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     private async Task DoShowBluetoothSelectorAsync(InteractionContext<BluetoothSelectorViewModel,
-        BluetoothSelectedViewModel?> interaction)
+        SelectedDeviceViewModel?> interaction)
     {
         var dialog = new BluetoothSelectorWindow();
         dialog.DataContext = interaction.Input;
 
-        var result = await dialog.ShowDialog<BluetoothSelectedViewModel?>(this);
+        var result = await dialog.ShowDialog<SelectedDeviceViewModel?>(this);
         interaction.SetOutput(result);
 
     }
