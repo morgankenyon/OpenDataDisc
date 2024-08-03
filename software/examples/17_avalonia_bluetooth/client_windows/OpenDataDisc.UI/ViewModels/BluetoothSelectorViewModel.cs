@@ -58,6 +58,7 @@ namespace OpenDataDisc.UI.ViewModels
             {
                 Name = "NRF52"
             });
+            requestOptions.AcceptAllDevices = false;
             var devices = await Bluetooth.ScanForDevicesAsync(cancellationToken: cancellationToken);
 
             foreach (var device in devices)

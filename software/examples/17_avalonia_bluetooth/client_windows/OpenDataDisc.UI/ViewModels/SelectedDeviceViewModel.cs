@@ -1,10 +1,16 @@
 ﻿using InTheHand.Bluetooth;
+using System.Windows.Navigation;
 
 namespace OpenDataDisc.UI.ViewModels
 {
     public class SelectedDeviceViewModel : ViewModelBase
     {
-        private readonly BluetoothDevice _device;
+        private BluetoothDevice _device;
+
+        public BluetoothDevice Device { 
+            get =>  _device; 
+            set => _device = value;
+        }
 
         public SelectedDeviceViewModel(BluetoothDevice device)
         {
