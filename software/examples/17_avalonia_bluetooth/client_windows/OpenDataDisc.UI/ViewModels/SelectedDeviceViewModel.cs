@@ -12,6 +12,8 @@ namespace OpenDataDisc.UI.ViewModels
         }
 
         public string Name => _device.Name;
-        public bool IsPaired => _device.IsPaired;
+
+        private string NormalizeIsPaired(bool isPaired) => isPaired ? "Yes" : "No";
+        public string IsPaired => $"Paired? {NormalizeIsPaired(_device.IsPaired)}";
     }
 }

@@ -49,6 +49,10 @@
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>-->
+			<StackPanel Margin="20">
+				<TextBlock Text="Device connected to:" />
+				<TextBlock Text="{Binding SelectedDevice.Name}" />
+			</StackPanel>
 		</Panel>
 	</Panel>
 </Window>

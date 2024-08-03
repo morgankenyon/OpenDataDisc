@@ -1,43 +1,30 @@
 ﻿using InTheHand.Bluetooth;
 using ReactiveUI;
-using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Linq;
+using System.Reactive.Concurrency;
 using System.Threading;
 
 namespace OpenDataDisc.UI.ViewModels
 {
     public class BluetoothSelectorViewModel : ViewModelBase
     {
-        private SelectedDeviceViewModel? _selectedBluetoothDevice;
-        public SelectedDeviceViewModel? SelectedBluetoothDevice
-        {
-            get => _selectedBluetoothDevice;
-            set => this.RaiseAndSetIfChanged(ref _selectedBluetoothDevice, value);
-        }
-
-        private string? _searchText;
         private bool _isBusy;
         private CancellationTokenSource? _cancellationTokenSource;
 
         public BluetoothSelectorViewModel()
         {
-            this.WhenAnyValue(x => x.SearchText)
-                .Throttle(TimeSpan.FromMilliseconds(2000))
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(SearchForDevices);
-
             SelectBluetoothDeviceCommand = ReactiveCommand.Create(() =>
             {
-                return SelectedBluetoothDevice;
+                return SelectedDevice;
             });
+
+            RxApp.MainThreadScheduler.Schedule(SearchForDevices);
         }
 
-        public string? SearchText
+        public string SearchingForDevicesText
         {
-            get => _searchText;
-            set => this.RaiseAndSetIfChanged(ref _searchText, value);
+            get => "Searching for Devices";
         }
 
         public bool IsBusy
@@ -57,7 +44,7 @@ namespace OpenDataDisc.UI.ViewModels
         }
         public ObservableCollection<SelectedDeviceViewModel> NearbyDevices { get; } = new();
 
-        private async void SearchForDevices(string? s)
+        private async void SearchForDevices()
         {
             IsBusy = true;
             NearbyDevices.Clear();
@@ -66,6 +53,11 @@ namespace OpenDataDisc.UI.ViewModels
             _cancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = _cancellationTokenSource.Token;
 
+            var requestOptions = new RequestDeviceOptions();
+            requestOptions.Filters.Add(new BluetoothLEScanFilter
+            {
+                Name = "NRF52"
+            });
             var devices = await Bluetooth.ScanForDevicesAsync(cancellationToken: cancellationToken);
 
             foreach (var device in devices)

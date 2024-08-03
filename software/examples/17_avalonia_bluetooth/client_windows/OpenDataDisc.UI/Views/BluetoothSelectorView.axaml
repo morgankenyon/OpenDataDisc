@@ -8,9 +8,13 @@
 			 x:DataType="vm:BluetoothSelectorViewModel">
 	<DockPanel>
 		<StackPanel DockPanel.Dock="Top">
-			<TextBox Text="{Binding SearchText}" Watermark="Search for Devices...." />
+			<TextBlock Text="{Binding SearchingForDevicesText}" IsVisible="{Binding IsBusy}" />
 			<ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"/>
 		</StackPanel>
+		<Button Content="Sync with Device"
+				DockPanel.Dock="Bottom"
+				HorizontalAlignment="Center"
+				Command="{Binding SelectBluetoothDeviceCommand}" />
 		<ListBox ItemsSource="{Binding NearbyDevices}" SelectedItem="{Binding SelectedDevice}"
 				 Background="Transparent" Margin="0 20">
 			<ListBox.ItemsPanel>
