@@ -1,5 +1,4 @@
 ﻿using ReactiveUI;
-using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Windows.Input;
 
@@ -9,8 +8,6 @@ public class MainWindowViewModel : ViewModelBase
 {
     public ICommand SelectBluetoothDeviceCommand { get; }
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
-
-    public ObservableCollection<AlbumViewModel> Albums { get; } = new();
     
     private SelectedDeviceViewModel? _selectedDevice;
     public SelectedDeviceViewModel? SelectedDevice
