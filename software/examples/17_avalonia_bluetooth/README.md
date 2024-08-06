@@ -5,6 +5,8 @@ My first attempt to get bluetooth working with Avalonia. I'm basically going to 
 * Uploading to nrf52
   * `pio run --target upload`
 
+This example now allows you to select a bluetooth device, subscribe to it, then display messages on the home screen.
+
 ## Resources
 
 * Example 15
