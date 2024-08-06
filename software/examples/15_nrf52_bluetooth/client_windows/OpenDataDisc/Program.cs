@@ -69,7 +69,6 @@ if (device != null)
                 characteristic.CharacteristicValueChanged += NotifyEventHandler;
                 await characteristic.StartNotificationsAsync();
 
-                
                 Console.WriteLine("Waiting for messages");
                 await Task.Delay(10000); //delay for 10 seconds
 
