@@ -1,6 +1,7 @@
 ﻿using InTheHand.Bluetooth;
 using ReactiveUI;
 using System;
+using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
     }
 
+    public ObservableCollection<string> Messages { get; } = new();
+
     private CancellationTokenSource? _cancellationTokenSource;
     public MainWindowViewModel()
     {
@@ -36,42 +39,47 @@ public class MainWindowViewModel : ViewModelBase
 
             if (result != null)
             {
-                SelectedDevice = result;
-
                 _cancellationTokenSource = new CancellationTokenSource();
-                await ListenToDevice(SelectedDevice, _cancellationTokenSource.Token);
+                await ListenToDevice(result, _cancellationTokenSource.Token);
             }
         });
     }
 
-    static void NotifyEventHandler(object? sender, GattCharacteristicValueChangedEventArgs e)
+    static EventHandler<GattCharacteristicValueChangedEventArgs> BuildNotifyEventHandler(
+        ObservableCollection<string> messages)
     {
-        if (e.Value != null)
+        EventHandler<GattCharacteristicValueChangedEventArgs> privateMethod = (object? sender, GattCharacteristicValueChangedEventArgs e) =>
         {
-            var strReceived = System.Text.Encoding.Default.GetString(e.Value);
-            if (double.TryParse(strReceived, out var result))
+            if (e.Value != null)
             {
-                Console.WriteLine($"Received - {result}");
+                var strReceived = System.Text.Encoding.Default.GetString(e.Value);
+                if (double.TryParse(strReceived, out var result))
+                {
+                    Console.WriteLine($"Received - {result}");
+                }
+                else if (e.Value is System.Byte[])
+                {
+                    var bytes = e.Value as System.Byte[];
+                    var str = System.Text.Encoding.Default.GetString(bytes);
+                    messages.Add(str); // Console.WriteLine($"Received - {str}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"Received - {e.Value} - {strReceived}");
+                }
             }
-            else if (e.Value is System.Byte[])
+            else if (e.Error != null)
             {
-                var bytes = e.Value as System.Byte[];
-                var str = System.Text.Encoding.Default.GetString(bytes);
-                Console.WriteLine($"Received - {str}");
+                Console.WriteLine($"Received Error - {e.Error.Message}");
             }
             else
             {
-                Console.WriteLine($"Received - {e.Value} - {strReceived}");
+                Console.WriteLine("Received message");
             }
-        }
-        else if (e.Error != null)
-        {
-            Console.WriteLine($"Received Error - {e.Error.Message}");
-        }
-        else
-        {
-            Console.WriteLine("Received message");
-        }
+        };
+
+        return privateMethod;
     }
 
     private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
@@ -80,6 +88,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (device != null)
         {
+            //name of device is changing after connecting for some reason
             await device.Gatt.ConnectAsync();
 
             var service = await device.Gatt.GetPrimaryServiceAsync(serviceUuid);
@@ -89,8 +98,10 @@ public class MainWindowViewModel : ViewModelBase
                 var chars = await service.GetCharacteristicAsync(characteristicUuid);
                 if (chars != null)
                 {
-                    chars.CharacteristicValueChanged += NotifyEventHandler;
+                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages);
                     await chars.StartNotificationsAsync();
+
+                    SelectedDevice = selectedDevice;
 
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
