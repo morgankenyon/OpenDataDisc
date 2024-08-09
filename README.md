@@ -54,12 +54,8 @@ No timeline on when early prototypes might be available.
   * Should be easy for non technical people to setup and use
   * Lots of polish will need to happen before this is ready
 
-## Hardware Components
+## Repo Layout
 
-Currently I'm using the following:
-* Brains - a [Xiao NRF52 Sense](https://www.seeedstudio.com/Seeed-XIAO-BLE-Sense-nRF52840-p-5253.html)
-  * Earlier I used an esp32 microcontroller, but since I didn't need wifi moved to something that fit my requirements and will have longer battery life.
-  * This board includes an IMU, USB and LiIon charging circuits built in
-* Power - exploring this [110 mAh LiIon battery](https://www.mouser.com/ProductDetail/SparkFun/PRT-13853?qs=wwacUt%252BV97vyGHIz/Bmbzw%3D%3D&countryCode=US&currencyCode=USD), still in the early phases of testing this.
-* Casing - TBD
-  * Currently have not tried putting my stuff on a disc
+This repo holds both [hardware](./hardware/README.md) and [software](./software/README.md) for the OpenDataDisc project. As this project is still in it's early phase, there's no instructions on how to build your own and run on your own computers. 
+
+That information will come as the project progresses.
