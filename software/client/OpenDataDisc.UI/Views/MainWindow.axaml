@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenDataDisc.UI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:views="using:OpenDataDisc.UI.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="OpenDataDisc.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="OpenDataDisc"
+		TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+		WindowStartupLocation="CenterScreen">
+	<Panel>
+		<ExperimentalAcrylicBorder IsHitTestVisible="False">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="1"
+					MaterialOpacity="0.65" />
+			</ExperimentalAcrylicBorder.Material>
+		</ExperimentalAcrylicBorder>
+
+		<Panel Margin="40">
+			<Button HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding SelectBluetoothDeviceCommand}">
+				<PathIcon Data="{StaticResource bluetooth_regular}" />
+			</Button>
+			<StackPanel Margin="20">
+				<TextBlock Text="Device connected to:" />
+				<TextBlock Text="{Binding SelectedDevice.Name}" />
+			</StackPanel>
+			<ItemsControl Margin="80" ItemsSource="{Binding Messages}">
+			</ItemsControl>
+		</Panel>
+	</Panel>
+</Window>
