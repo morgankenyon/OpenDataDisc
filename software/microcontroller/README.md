@@ -18,3 +18,11 @@ To upload and run this on a nrf52 sense:
 ### Debugging
 
 I use [platformIO's Visual Studio plugin ](https://platformio.org/install/ide?install=vscode), which allows me to use the serial debugger if I ever need to see what is going on with my nrf52.
+
+## Issues
+
+* Currently I am running into a 20 byte limit of bluetooth messages.
+  * Ideally bluetooth should support up to 512 bytes. Or at least around 50 which would allow me to send both server data points at the same time.
+  * So that's why I'm currently sending 2 different messages, 1 for acceleration and 1 for gyro.
+  * That seems to be the hard coded limit of the bluetooth library I'm using.
+  * So apparent solution.

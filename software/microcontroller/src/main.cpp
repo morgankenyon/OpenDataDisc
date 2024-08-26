@@ -70,7 +70,7 @@ void disconnectHandler(BLEDevice central) {
 
 String normalizeSensor(float value)
 {
-  return String(value, 3);
+  return String(value, 2);
 }
 
 void setup() {
@@ -144,17 +144,18 @@ void loop() {
       String accX = normalizeSensor(myIMU.readFloatAccelX());
       String accY = normalizeSensor(myIMU.readFloatAccelY());
       String accZ = normalizeSensor(myIMU.readFloatAccelZ());
-      String acc = String(accX + "," + accY + "," + accZ);
+      String acc = String("A" + accX + "," + accY + "," + accZ);
       // gyro values
       String gyroX = normalizeSensor(myIMU.readFloatGyroX());
       String gyroY = normalizeSensor(myIMU.readFloatGyroY());
       String gyroZ = normalizeSensor(myIMU.readFloatGyroZ());
-      String gyro = String(gyroX + "," + gyroY + "," + gyroZ);
+      String gyro = String("G" + gyroX + "," + gyroY + "," + gyroZ);
 
-      String combinedSensors = String (acc + ":" + gyro);
-      Serial.println(combinedSensors);
+      Serial.println(acc);
+      Serial.println(gyro);
 
-      nrf52Characteristic.writeValue(combinedSensors);
+      nrf52Characteristic.writeValue(acc);
+      nrf52Characteristic.writeValue(gyro);
       delay(1000);
     }
 
