@@ -8,7 +8,7 @@ namespace OpenDataDisc.Services
 {
     internal class DataSchemaService : IDataSchemaService
     {
-        private readonly Migration _newMigration = Migration.SensorData;
+        private readonly Migration _latestMigration = Migration.SensorData;
         public async Task MigrateSchemaToLatest()
         {
             try
@@ -20,7 +20,7 @@ namespace OpenDataDisc.Services
 
                 var currentMigration = await CalculateLatestMigration(sqlConn);
 
-                if (currentMigration < _newMigration)
+                if (currentMigration < _latestMigration)
                 {
                     await MigrateSchema(currentMigration, sqlConn);
                 }
@@ -60,15 +60,15 @@ namespace OpenDataDisc.Services
             return (Migration)migrationNumber;
         }
 
-        private async Task MigrateSchema(Migration latestMigration, SQLiteConnection connection)
+        private async Task MigrateSchema(Migration currentMigration, SQLiteConnection connection)
         {
             string migrationText = string.Empty;
             SQLiteCommand command = connection.CreateCommand();
 
-            while (latestMigration < _newMigration)
+            while (currentMigration < _latestMigration)
             {
 
-                switch (latestMigration)
+                switch (currentMigration)
                 {
                     case Migration.Empty:
                         migrationText = @"
@@ -82,7 +82,7 @@ namespace OpenDataDisc.Services
                         command.CommandText = migrationText;
                         await command.ExecuteNonQueryAsync();
 
-                        latestMigration = Migration.MigrationsTable;
+                        currentMigration = Migration.MigrationsTable;
                         break;
                     case Migration.MigrationsTable:
                         migrationText = @"
@@ -90,21 +90,19 @@ namespace OpenDataDisc.Services
 
     CREATE Table sensor_data (type VARCHAR(20), date INTEGER, val1 FLOAT, val2 FLOAT, val3 FLOAT);
 
-    INSERT INTO migrations (name, number) VALUES ('sensor_data table', 2);
+    INSERT INTO migrations (name, number) VALUES ('sensor_data_table', 2);
 
     COMMIT;";
                         command.CommandText = migrationText;
                         await command.ExecuteNonQueryAsync();
 
-                        latestMigration = Migration.SensorData;
+                        currentMigration = Migration.SensorData;
                         break;
                     default:
 
                         break;
-
                 }
             }
-
         }
     }
 
