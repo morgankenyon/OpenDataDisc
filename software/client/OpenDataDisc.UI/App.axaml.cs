@@ -38,11 +38,7 @@ public partial class App : Application
     {
         var dataSchemaService = Services.GetRequiredService<IDataSchemaService>();
 
-        //need error handling logic here
-        //Task.Run(async () =>
-        //{
-        //    await dataSchemaService.MigrateSchemaToLatest();
-        //});
+        //TODO: need error handling logic here
         dataSchemaService.MigrateSchemaToLatest().GetAwaiter().GetResult();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
