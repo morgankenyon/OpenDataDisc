@@ -13,7 +13,7 @@ namespace OpenDataDisc.Services
         {
             try
             {
-
+                //move this somewhere centralized when database operations are more widely used
                 SQLiteConnection sqlConn = new SQLiteConnection("Data Source=opendatadisc.db;Version=3;New=True;Compress=True");
 
                 sqlConn.Open();
@@ -27,8 +27,7 @@ namespace OpenDataDisc.Services
             }
             catch (Exception ex)
             {
-                var msg = ex.Message;
-                string nextMsg = $"{msg}";
+                //add proper error handling, display message to user???
             }
         }
 
