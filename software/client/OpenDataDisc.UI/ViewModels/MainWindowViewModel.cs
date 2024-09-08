@@ -1,9 +1,11 @@
 ﻿using InTheHand.Bluetooth;
+using OpenDataDisc.Services;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -16,6 +18,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand SelectBluetoothDeviceCommand { get; }
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
     
+    private static Channel<SensorData> SensorChannel = Channel.CreateUnbounded<SensorData>();
     private SelectedDeviceViewModel? _selectedDevice;
     public SelectedDeviceViewModel? SelectedDevice
     {
@@ -43,6 +46,15 @@ public class MainWindowViewModel : ViewModelBase
                 await ListenToDevice(result, _cancellationTokenSource.Token);
             }
         });
+
+    }
+
+    private async Task WriteToDatabase()
+    {
+        await foreach(var sensorData in SensorChannel.Reader.ReadAllAsync())
+        {
+            //write to db
+        }
     }
 
     static EventHandler<GattCharacteristicValueChangedEventArgs> BuildNotifyEventHandler(
@@ -61,8 +73,9 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     var bytes = e.Value as System.Byte[];
                     var str = System.Text.Encoding.Default.GetString(bytes);
-                    messages.Add(str); // Console.WriteLine($"Received - {str}");
-
+                    //save here
+                    messages.Add(str);
+                    SensorChannel.Writer.TryWrite(new SensorData("lol", 23, 23.0f, 23.0f, 23.0f)); ;
                 }
                 else
                 {
@@ -85,6 +98,8 @@ public class MainWindowViewModel : ViewModelBase
     private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
     {
         var device = selectedDevice.Device;
+
+        var writeToDatabaseTask = WriteToDatabase().ConfigureAwait(false);
 
         if (device != null)
         {
@@ -111,6 +126,8 @@ public class MainWindowViewModel : ViewModelBase
             }
 
             device.Gatt.Disconnect();
+
+            await writeToDatabaseTask;
         }
     }
 }
