@@ -13,6 +13,7 @@ An open platform that allows disc golfers to collect their throw statistics.
 > Putter Board Mounted On Disc
 ![OpenDataDisc On Disc](HousingOnDisc.jpg)
 
+I'm documentating my process over on my [youtube channel](https://www.youtube.com/@BlenderDiscGolf).
 
 ## Disc Golf + Analytics
 
