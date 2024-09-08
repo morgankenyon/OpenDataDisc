@@ -5,6 +5,15 @@ An open platform that allows disc golfers to collect their throw statistics.
 
 > Your throw, your data, your platform.
 
+## Pics
+
+> Putter Dev Board
+![OpenDataDisc Housing](HousingStandalone.jpg)
+
+> Putter Board Mounted On Disc
+![OpenDataDisc On Disc](HousingOnDisc.jpg)
+
+
 ## Disc Golf + Analytics
 
 I'd love the ablity to track and measure my disc golf throws without spending tons of money.
@@ -26,12 +35,12 @@ No timeline on when early prototypes might be available.
 
 ## Project Phases (Somewhat flexible now)
 
-* Getting to know hardware (current phase)
+* Getting to know hardware
   * Buying the hardware I think I need.
   * Hooking everything up.
   * Getting data flowing between microcontroller and computer.
   * Getting some basic calculations working
-* Putter version
+* Putter version (current phase)
   * Putts have slow RPMs and low Gs
     * These values are much easier to measure and test.
     * Hardware is also cheaper.
