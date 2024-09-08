@@ -28,11 +28,11 @@ Will that mix actually produce something usable? No idea.
 
 ## Current Project Phase
 
-Phase: Getting to know hardware
+Phase: Putter version
 
-At this point I just have a microcontroller, some sensors, and (not very much) code.
+As shown in the pics above, I have a putter dev board that I'm just starting to use to measure statistics of putts.
 
-No timeline on when early prototypes might be available.
+Putts are easier to measure due to low speeds and rpms.
 
 ## Project Phases (Somewhat flexible now)
 
