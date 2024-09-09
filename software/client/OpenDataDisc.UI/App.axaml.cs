@@ -41,11 +41,13 @@ public partial class App : Application
         //TODO: need error handling logic here
         dataSchemaService.MigrateSchemaToLatest().GetAwaiter().GetResult();
 
+        var sensorService = Services.GetRequiredService<ISensorService>();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(),
+                DataContext = new MainWindowViewModel(sensorService),
             };
         }
 

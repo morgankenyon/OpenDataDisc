@@ -1,5 +1,6 @@
 ﻿using InTheHand.Bluetooth;
 using OpenDataDisc.Services;
+using OpenDataDisc.Services.Interfaces;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
@@ -29,7 +30,8 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<string> Messages { get; } = new();
 
     private CancellationTokenSource? _cancellationTokenSource;
-    public MainWindowViewModel()
+    private readonly ISensorService _sensorService;
+    public MainWindowViewModel(ISensorService sensorService)
     {
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
 
@@ -47,13 +49,14 @@ public class MainWindowViewModel : ViewModelBase
             }
         });
 
+        _sensorService = sensorService;
     }
 
     private async Task WriteToDatabase()
     {
         await foreach(var sensorData in SensorChannel.Reader.ReadAllAsync())
         {
-            //write to db
+            await _sensorService.SaveSensorData(sensorData);
         }
     }
 
@@ -73,9 +76,8 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     var bytes = e.Value as System.Byte[];
                     var str = System.Text.Encoding.Default.GetString(bytes);
-                    //save here
                     messages.Add(str);
-                    SensorChannel.Writer.TryWrite(new SensorData("lol", 23, 23.0f, 23.0f, 23.0f)); ;
+                    SensorChannel.Writer.TryWrite(new SensorData(str));
                 }
                 else
                 {

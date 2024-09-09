@@ -4,6 +4,6 @@ namespace OpenDataDisc.Services.Interfaces
 {
     public interface ISensorService
     {
-        //Task SaveSensorData(SensorData sensorData);
+        Task SaveSensorData(SensorData sensorData);
     }
 }
