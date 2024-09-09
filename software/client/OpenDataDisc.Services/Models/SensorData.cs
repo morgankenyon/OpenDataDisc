@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenDataDisc.Services
+namespace OpenDataDisc.Services.Models
 {
     public class SensorData
     {
@@ -42,7 +42,7 @@ namespace OpenDataDisc.Services
             {
                 v2 = 0.0f;
             }
-            
+
             //parse third val
             if (float.TryParse(measurements[2], out float v3))
             {

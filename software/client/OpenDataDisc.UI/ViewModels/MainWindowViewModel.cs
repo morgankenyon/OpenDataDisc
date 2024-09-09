@@ -1,6 +1,6 @@
 ﻿using InTheHand.Bluetooth;
-using OpenDataDisc.Services;
 using OpenDataDisc.Services.Interfaces;
+using OpenDataDisc.Services.Models;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
