@@ -7,7 +7,6 @@ using OpenDataDisc.Services.Interfaces;
 using OpenDataDisc.UI.ViewModels;
 using OpenDataDisc.UI.Views;
 using System;
-using System.Threading.Tasks;
 
 namespace OpenDataDisc.UI;
 

@@ -1,20 +1,26 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OpenDataDisc.UI.ViewModels"
+        xmlns:m="using:OpenDataDisc.UI.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:views="using:OpenDataDisc.UI.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="OpenDataDisc.UI.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainWindowViewModel"		
         Icon="/Assets/avalonia-logo.ico"
         Title="OpenDataDisc"
 		TransparencyLevelHint="AcrylicBlur"
         Background="Transparent"
 		WindowStartupLocation="CenterScreen">
+	<Window.Resources>
+		<m:StateToVisibilityConverter x:Key="StateToVisibilityConverter" />
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<!-- Header Row -->
+			<RowDefinition Height="Auto"/>
+			<!-- Loading Row -->
 			<RowDefinition Height="Auto"/>
 			<!-- Content Row with ScrollViewer -->
 			<RowDefinition Height="*"/>
@@ -23,17 +29,32 @@
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 
+		<!-- Row that allows bluetooth connections -->
 		<Border Grid.Row="0" Background="#000064">
 			<Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Command="{Binding SelectBluetoothDeviceCommand}">
 				<PathIcon Data="{StaticResource bluetooth_regular}" />
 			</Button>
 		</Border>
 
-		<Border Grid.Row="1">
-			<!--<StackPanel DockPanel.Dock="Top">
-				<TextBlock Text="{Binding SearchingForDevicesText}" IsVisible="{Binding IsBusy}" />
-				<ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"/>
-			</StackPanel>-->
+		<!-- Row that shows connection status -->
+		<Border Grid.Row="1" Background="#FF0000">
+			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+				<!-- Loading state -->
+				<TextBlock Text="Unconnected" IsVisible="{Binding CurrentState, Converter={StaticResource StateToVisibilityConverter}, ConverterParameter=Unconnected}" />
+
+				<!-- Loaded state -->
+				<TextBlock Text="Connecting..." IsVisible="{Binding CurrentState, Converter={StaticResource StateToVisibilityConverter}, ConverterParameter=Connecting}" />
+
+				<!-- Connected state -->
+				<TextBlock Text="Connected" IsVisible="{Binding CurrentState, Converter={StaticResource StateToVisibilityConverter}, ConverterParameter=Connected}" />
+
+				<!-- Error state -->
+				<TextBlock Text="Disconnecting..." IsVisible="{Binding CurrentState, Converter={StaticResource StateToVisibilityConverter}, ConverterParameter=Disconnecting}" />
+			</StackPanel>
+		</Border>
+
+		<!-- Row that shows sensor messages -->
+		<Border Grid.Row="2">
 			<ScrollViewer Margin="10">
 				<ItemsControl Margin="20" ItemsSource="{Binding Messages}">
 				</ItemsControl>
