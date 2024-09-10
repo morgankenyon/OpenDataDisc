@@ -12,6 +12,14 @@ using System.Windows.Input;
 
 namespace OpenDataDisc.UI.ViewModels;
 
+public enum MainWindowState
+{
+    Unconnected = 0,
+    Connecting = 1,
+    Connected = 2,
+    Disconnected = 3
+}
+
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758b0"));
@@ -27,12 +35,22 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
     }
 
+    private MainWindowState _currentState;
+
+    public MainWindowState CurrentState
+    {
+        get => _currentState;
+        set => this.RaiseAndSetIfChanged(ref _currentState, value);
+    }
+
     public ObservableCollection<string> Messages { get; } = new();
 
     private CancellationTokenSource? _cancellationTokenSource;
     private readonly ISensorService _sensorService;
     public MainWindowViewModel(ISensorService sensorService)
     {
+        CurrentState = MainWindowState.Unconnected;
+
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
 
         SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -99,6 +117,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
     {
+        CurrentState = MainWindowState.Connecting;
         var device = selectedDevice.Device;
 
         var writeToDatabaseTask = WriteToDatabase().ConfigureAwait(false);
@@ -119,6 +138,7 @@ public class MainWindowViewModel : ViewModelBase
                     await chars.StartNotificationsAsync();
 
                     SelectedDevice = selectedDevice;
+                    CurrentState = MainWindowState.Connected;
 
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -127,9 +147,13 @@ public class MainWindowViewModel : ViewModelBase
                 }
             }
 
+            CurrentState = MainWindowState.Disconnected;
+
             device.Gatt.Disconnect();
 
             await writeToDatabaseTask;
         }
+
+        CurrentState = MainWindowState.Unconnected;
     }
 }
