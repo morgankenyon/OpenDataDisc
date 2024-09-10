@@ -12,14 +12,24 @@ using System.Windows.Input;
 
 namespace OpenDataDisc.UI.ViewModels;
 
+public enum MainWindowState
+{
+    Unconnected = 0,
+    Connecting = 1,
+    Connected = 2,
+    Disconnecting = 3
+}
+
 public class MainWindowViewModel : ViewModelBase
 {
+    //reference values
     private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758b0"));
     private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494f5"));
-    public ICommand SelectBluetoothDeviceCommand { get; }
-    public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
-    
-    private static Channel<SensorData> SensorChannel = Channel.CreateUnbounded<SensorData>();
+
+    //di references
+    private readonly ISensorService _sensorService;
+
+    //ui accessed variables
     private SelectedDeviceViewModel? _selectedDevice;
     public SelectedDeviceViewModel? SelectedDevice
     {
@@ -27,12 +37,29 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
     }
 
-    public ObservableCollection<string> Messages { get; } = new();
+    private MainWindowState _currentState;
 
+    public MainWindowState CurrentState
+    {
+        get => _currentState;
+        set => this.RaiseAndSetIfChanged(ref _currentState, value);
+    }
+
+    //interaction to launch bluetooth selector window
+    public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
+    
+    //command for propagating selected device
+    public ICommand SelectBluetoothDeviceCommand { get; }
+
+    //extra    
+    private static Channel<SensorData> SensorChannel = Channel.CreateUnbounded<SensorData>();
+    public ObservableCollection<string> Messages { get; } = new();
     private CancellationTokenSource? _cancellationTokenSource;
-    private readonly ISensorService _sensorService;
+    
     public MainWindowViewModel(ISensorService sensorService)
     {
+        CurrentState = MainWindowState.Unconnected;
+
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
 
         SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -52,6 +79,11 @@ public class MainWindowViewModel : ViewModelBase
         _sensorService = sensorService;
     }
 
+    /// <summary>
+    /// This consumes anything coming from the sensor channel and saves 
+    /// it to the db
+    /// </summary>
+    /// <returns></returns>
     private async Task WriteToDatabase()
     {
         await foreach(var sensorData in SensorChannel.Reader.ReadAllAsync())
@@ -99,6 +131,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
     {
+        CurrentState = MainWindowState.Connecting;
         var device = selectedDevice.Device;
 
         var writeToDatabaseTask = WriteToDatabase().ConfigureAwait(false);
@@ -119,6 +152,7 @@ public class MainWindowViewModel : ViewModelBase
                     await chars.StartNotificationsAsync();
 
                     SelectedDevice = selectedDevice;
+                    CurrentState = MainWindowState.Connected;
 
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -127,9 +161,13 @@ public class MainWindowViewModel : ViewModelBase
                 }
             }
 
+            CurrentState = MainWindowState.Disconnecting;
+
             device.Gatt.Disconnect();
 
             await writeToDatabaseTask;
         }
+
+        CurrentState = MainWindowState.Unconnected;
     }
 }

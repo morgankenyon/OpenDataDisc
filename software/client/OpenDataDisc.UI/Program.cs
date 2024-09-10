@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
+using System.IO;
 
 namespace OpenDataDisc.UI;
 
@@ -20,6 +21,7 @@ sealed class Program
         }
         catch (Exception ex)
         {
+            LogException(ex);
             Console.WriteLine(ex);
         }
         finally
@@ -35,4 +37,30 @@ sealed class Program
             .WithInterFont()
             .LogToTrace()
             .UseReactiveUI();
+
+    private static void LogException(Exception ex)
+    {
+        if (ex == null)
+            return;
+
+        string logFilePath = "exception.log"; // Define the path for your log file
+
+        try
+        {
+            using (StreamWriter writer = new StreamWriter(logFilePath, true))
+            {
+                writer.WriteLine("--------------------------------------------------");
+                writer.WriteLine($"Date: {DateTime.Now}");
+                writer.WriteLine($"Exception: {ex.GetType().Name}");
+                writer.WriteLine($"Message: {ex.Message}");
+                writer.WriteLine($"Stack Trace: {ex.StackTrace}");
+                writer.WriteLine();
+            }
+        }
+        catch (Exception logEx)
+        {
+            // Handle any issues with logging itself (e.g., file access issues)
+            Console.WriteLine($"Failed to log exception: {logEx.Message}");
+        }
+    }
 }
