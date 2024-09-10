@@ -30,7 +30,10 @@
 		</Border>
 
 		<Border Grid.Row="1">
-
+			<!--<StackPanel DockPanel.Dock="Top">
+				<TextBlock Text="{Binding SearchingForDevicesText}" IsVisible="{Binding IsBusy}" />
+				<ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"/>
+			</StackPanel>-->
 			<ScrollViewer Margin="10">
 				<ItemsControl Margin="20" ItemsSource="{Binding Messages}">
 				</ItemsControl>
