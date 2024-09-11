@@ -57,6 +57,7 @@
 		<Border Grid.Row="1" Grid.Column="1" Background="#FF0000">
 			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 				<TextBlock Text="{Binding CountText}" />
+				<TextBlock Text="{Binding MessageRateText}" />
 			</StackPanel>
 		</Border>
 
