@@ -8,12 +8,42 @@ namespace OpenDataDisc.Services
 {
     public class SensorService : ISensorService
     {
+        //put somewhere shareable
+        private readonly string connectionString = "Data Source=opendatadisc.db;Version=3;New=True;Compress=True";
+        public async Task<int> MessagesReceivedInLastNSeconds(int lastNSeconds)
+        {
+            var date = DateTimeOffset.Now.AddSeconds(-1 * lastNSeconds).ToUnixTimeSeconds();
+
+            try
+            {
+                SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
+
+                sqlConn.Open();
+
+                var command = new SQLiteCommand("SELECT COUNT(*) FROM sensor_data WHERE date > ?", sqlConn);
+
+                command.Parameters.AddWithValue("date", date);
+
+                var result = await command.ExecuteScalarAsync();
+
+                if (int.TryParse(result.ToString(), out var messages))
+                {
+                    return messages;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return -1;
+        }
+
         public async Task SaveSensorData(SensorData sensorData)
         {
             try
             {
-                //put somewhere shareable
-                SQLiteConnection sqlConn = new SQLiteConnection("Data Source=opendatadisc.db;Version=3;New=True;Compress=True");
+                SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
 
                 sqlConn.Open();
 

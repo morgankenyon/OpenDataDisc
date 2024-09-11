@@ -76,7 +76,7 @@ String normalizeSensor(float value)
 void setup() {
   Serial.begin(125000);
 
-  while (!Serial);
+  //while (!Serial);
   //Call .begin() to configure the IMUs
   if (myIMU.begin() != 0) {
     Serial.println("Device error");

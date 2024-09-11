@@ -45,6 +45,23 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentState, value);
     }
 
+    private int _messageCount;
+    public int MessageCount
+    {
+        get => _messageCount;
+        set => this.RaiseAndSetIfChanged(ref _messageCount, value);
+    }
+
+    private double _messageRate;
+    public double MessageRate
+    {
+        get => _messageRate;
+        set => this.RaiseAndSetIfChanged(ref _messageRate, value);
+    }
+
+    public string CountText => $"Messages received: {_messageCount}";
+    public string MessageRateText => $"Message Rate: {_messageRate} msg/sec";
+
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
     
@@ -55,6 +72,7 @@ public class MainWindowViewModel : ViewModelBase
     private static Channel<SensorData> SensorChannel = Channel.CreateUnbounded<SensorData>();
     public ObservableCollection<string> Messages { get; } = new();
     private CancellationTokenSource? _cancellationTokenSource;
+    private CancellationTokenSource? _messageRateTokenSource;
     
     public MainWindowViewModel(ISensorService sensorService)
     {
@@ -77,6 +95,43 @@ public class MainWindowViewModel : ViewModelBase
         });
 
         _sensorService = sensorService;
+
+        this.WhenAnyValue(x => x.MessageCount)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(CountText)));
+
+        this.WhenAnyValue(x => x.MessageRate)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(MessageRateText)));
+
+        this.WhenAnyValue(x => x.CurrentState)
+            .Subscribe(_ => ControlMessageRateCalculation());
+    }
+
+    private void ControlMessageRateCalculation()
+    {
+        switch (CurrentState)
+        {
+            case MainWindowState.Connected:
+                _messageRateTokenSource = new CancellationTokenSource();
+                //intentionally not await, letting token stop it
+                CalculateMessagesPerSecond(_messageRateTokenSource.Token);
+                break;
+            case MainWindowState.Unconnected:
+            case MainWindowState.Disconnecting:
+            case MainWindowState.Connecting:
+                _messageRateTokenSource?.Cancel();
+                break;
+        }
+    }
+
+    private async Task CalculateMessagesPerSecond(CancellationToken token)
+    {
+        var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        while (await periodicTimer.WaitForNextTickAsync(token))
+        {
+            var messages = await _sensorService.MessagesReceivedInLastNSeconds(15);
+            var rate = Math.Round(messages / 15.0, 1);
+            MessageRate = rate;
+        }
     }
 
     /// <summary>
@@ -93,7 +148,8 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     static EventHandler<GattCharacteristicValueChangedEventArgs> BuildNotifyEventHandler(
-        ObservableCollection<string> messages)
+        ObservableCollection<string> messages,
+        Action updateCount)
     {
         EventHandler<GattCharacteristicValueChangedEventArgs> privateMethod = (object? sender, GattCharacteristicValueChangedEventArgs e) =>
         {
@@ -109,6 +165,7 @@ public class MainWindowViewModel : ViewModelBase
                     var bytes = e.Value as System.Byte[];
                     var str = System.Text.Encoding.Default.GetString(bytes);
                     messages.Add(str);
+                    updateCount();
                     SensorChannel.Writer.TryWrite(new SensorData(str));
                 }
                 else
@@ -127,6 +184,11 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         return privateMethod;
+    }
+
+    private void UpdateCount()
+    {
+        this.MessageCount++;
     }
 
     private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
@@ -148,7 +210,7 @@ public class MainWindowViewModel : ViewModelBase
                 var chars = await service.GetCharacteristicAsync(characteristicUuid);
                 if (chars != null)
                 {
-                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages);
+                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
                     await chars.StartNotificationsAsync();
 
                     SelectedDevice = selectedDevice;
