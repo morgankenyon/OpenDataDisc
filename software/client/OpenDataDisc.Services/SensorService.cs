@@ -43,7 +43,6 @@ namespace OpenDataDisc.Services
         {
             try
             {
-                //put somewhere shareable
                 SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
 
                 sqlConn.Open();
