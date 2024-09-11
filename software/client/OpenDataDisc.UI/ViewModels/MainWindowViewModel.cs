@@ -61,6 +61,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public string CountText => $"Messages received: {_messageCount}";
     public string MessageRateText => $"Message Rate: {_messageRate} msg/sec";
+    public string ChannelCountText => $"Channel Count: {SensorChannel.Reader.Count}";
 
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
@@ -97,7 +98,10 @@ public class MainWindowViewModel : ViewModelBase
         _sensorService = sensorService;
 
         this.WhenAnyValue(x => x.MessageCount)
-            .Subscribe(_ => this.RaisePropertyChanged(nameof(CountText)));
+            .Subscribe(_ => {
+                this.RaisePropertyChanged(nameof(CountText));
+                this.RaisePropertyChanged(nameof(ChannelCountText));
+            });
 
         this.WhenAnyValue(x => x.MessageRate)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(MessageRateText)));
