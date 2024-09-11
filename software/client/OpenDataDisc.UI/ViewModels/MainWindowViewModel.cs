@@ -45,6 +45,15 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentState, value);
     }
 
+    private int _messageCount;
+    public int MessageCount
+    {
+        get => _messageCount;
+        set => this.RaiseAndSetIfChanged(ref _messageCount, value);
+    }
+
+    public string CountText => $"Messages received: {_messageCount}";
+
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
     
@@ -77,6 +86,9 @@ public class MainWindowViewModel : ViewModelBase
         });
 
         _sensorService = sensorService;
+
+        this.WhenAnyValue(x => x.MessageCount)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(CountText)));
     }
 
     /// <summary>
@@ -93,7 +105,8 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     static EventHandler<GattCharacteristicValueChangedEventArgs> BuildNotifyEventHandler(
-        ObservableCollection<string> messages)
+        ObservableCollection<string> messages,
+        Action updateCount)
     {
         EventHandler<GattCharacteristicValueChangedEventArgs> privateMethod = (object? sender, GattCharacteristicValueChangedEventArgs e) =>
         {
@@ -109,6 +122,7 @@ public class MainWindowViewModel : ViewModelBase
                     var bytes = e.Value as System.Byte[];
                     var str = System.Text.Encoding.Default.GetString(bytes);
                     messages.Add(str);
+                    updateCount();
                     SensorChannel.Writer.TryWrite(new SensorData(str));
                 }
                 else
@@ -127,6 +141,11 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         return privateMethod;
+    }
+
+    private void UpdateCount()
+    {
+        this.MessageCount++;
     }
 
     private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
@@ -148,7 +167,7 @@ public class MainWindowViewModel : ViewModelBase
                 var chars = await service.GetCharacteristicAsync(characteristicUuid);
                 if (chars != null)
                 {
-                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages);
+                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
                     await chars.StartNotificationsAsync();
 
                     SelectedDevice = selectedDevice;
