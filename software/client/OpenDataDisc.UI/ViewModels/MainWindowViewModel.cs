@@ -168,7 +168,7 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     var bytes = e.Value as System.Byte[];
                     var str = System.Text.Encoding.Default.GetString(bytes);
-                    messages.Add(str);
+                    //messages.Add(str);
                     updateCount();
                     SensorChannel.Writer.TryWrite(new SensorData(str));
                 }

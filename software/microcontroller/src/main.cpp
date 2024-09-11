@@ -135,12 +135,7 @@ void loop() {
 
     // while the central is still connected to peripheral:
     while (central.connected()) {
-      //Serial.println("writing value");
-      
       // accelerometer values
-      // float accX = myIMU.readFloatAccelX();
-      // float accY = myIMU.readFloatAccelY();
-      // float accZ = myIMU.readFloatAccelZ();
       String accX = normalizeSensor(myIMU.readFloatAccelX());
       String accY = normalizeSensor(myIMU.readFloatAccelY());
       String accZ = normalizeSensor(myIMU.readFloatAccelZ());
@@ -156,7 +151,7 @@ void loop() {
 
       nrf52Characteristic.writeValue(acc);
       nrf52Characteristic.writeValue(gyro);
-      delay(1000);
+      //delay(100);
     }
 
     // when the central disconnects, print it out:
