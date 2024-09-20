@@ -12,3 +12,12 @@ It goes through a lot of things about the board and will help me gain a basic un
   * I also installed the "Toolchain Manager".
 
 ## Video #2 - GPIOs, Leds and DeviceTree
+
+Have some examples in `my_second_blinky`, mostly over my head thought.
+
+## Video #3 - Battery Service
+
+https://www.youtube.com/watch?v=CVFbqMMiX2U
+
+Changing over to the bluetooth videos as they are more appropriate for what I want to do.
+
