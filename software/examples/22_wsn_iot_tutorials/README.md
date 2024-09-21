@@ -21,3 +21,9 @@ https://www.youtube.com/watch?v=CVFbqMMiX2U
 
 Changing over to the bluetooth videos as they are more appropriate for what I want to do.
 
+Code exists in the `ble_battery_service` project.
+
+## Video #4 - Environmental Sensing Service
+
+https://www.youtube.com/watch?v=D9cv3_Z8qwg
+
