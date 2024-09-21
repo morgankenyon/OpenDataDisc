@@ -27,3 +27,14 @@ Code exists in the `ble_battery_service` project.
 
 https://www.youtube.com/watch?v=D9cv3_Z8qwg
 
+Code exists in the `ble_ess` project.
+
+## Video #5 - Custom Service
+
+https://www.youtube.com/watch?v=o-NECS2TN94
+
+Code exists in the `ble_custom_service` project.
+
+## Trying to get notify to work
+
+Code exists in the `ble_test` project.
