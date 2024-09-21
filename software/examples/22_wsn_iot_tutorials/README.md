@@ -38,3 +38,14 @@ Code exists in the `ble_custom_service` project.
 ## Trying to get notify to work
 
 Code exists in the `ble_test` project.
+
+Links for getting notify to work:
+
+* https://devzone.nordicsemi.com/f/nordic-q-a/94008/custom-notification-characteristic-not-updating
+* https://devzone.nordicsemi.com/guides/nrf-connect-sdk-guides/b/software/posts/building-a-ble-application-on-ncs-comparing-and-contrasting-to-softdevice-based-ble-applications#mcetoc_1elnnim8t3
+
+### Issues
+
+I encountered an issue where my Visual studio Code build just reran and reran. I think this was due to my copying projects and paths being pointed to wrong places.
+
+I deleted my build folder and regenerated it via the nRF Connect VS Code Extension and it worked as expected.

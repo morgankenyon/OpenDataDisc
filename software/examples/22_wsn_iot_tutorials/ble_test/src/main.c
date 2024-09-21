@@ -9,13 +9,14 @@
 LOG_MODULE_REGISTER(ble_bas);
 
 // UUID of the custom service
-#define BT_UUIT_MY_CUSTOM_SERV_VAL BT_UUID_128_ENCODE(0x445817d2, 0x9e86, 4216, 8054, 0x703dc002ef41)
+#define BT_UUIT_MY_CUSTOM_SERV_VAL BT_UUID_128_ENCODE(0x900e9509, 0xa0b2, 0x4d89, 0x9bb6, 0xb5e011e758b0)
 #define BT_UUID_MY_CUSTOM_SERVICE BT_UUID_DECLARE_128(BT_UUIT_MY_CUSTOM_SERV_VAL)
 
 // UUID of the custom temperature characteristic
-#define BT_UUIT_MY_TEMPERATURE_CHRC_VAL BT_UUID_128_ENCODE(0x445817d2, 0x9e86, 4216, 8054, 0x703dc002ef42)
+#define BT_UUIT_MY_TEMPERATURE_CHRC_VAL BT_UUID_128_ENCODE(0x6ef4cd45, 0x7223, 0x43b2, 0xb5c9, 0xd13410b494f5)
 #define BT_UUID_MY_TEMPERATURE_CHRC BT_UUID_DECLARE_128(BT_UUIT_MY_TEMPERATURE_CHRC_VAL)
 
+#define VND_MAX_LEN 20
 
 volatile bool ble_ready=false;
 
@@ -27,21 +28,11 @@ static const struct bt_data ad[] =
 	BT_DATA_BYTES(BT_DATA_UUID128_ALL, BT_UUIT_MY_CUSTOM_SERV_VAL)
 };
 
-ssize_t my_read_temperature_function(struct bt_conn *conn,
-					const struct bt_gatt_attr *attr, void *buf,
-					uint16_t len, uint16_t offset);
-
 BT_GATT_SERVICE_DEFINE(custom_srv,
 	BT_GATT_PRIMARY_SERVICE(BT_UUID_MY_CUSTOM_SERVICE),
-	BT_GATT_CHARACTERISTIC(BT_UUID_MY_TEMPERATURE_CHRC, BT_GATT_CHRC_READ, BT_GATT_PERM_READ, my_read_temperature_function, NULL, NULL),
+	BT_GATT_CHARACTERISTIC(BT_UUID_MY_TEMPERATURE_CHRC, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL, NULL, NULL),
+	BT_GATT_CCC(NULL, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
 );
-
-ssize_t my_read_temperature_function(struct bt_conn *conn,
-					const struct bt_gatt_attr *attr, void *buf,
-					uint16_t len, uint16_t offset)
-{
-	return bt_gatt_attr_read(conn, attr, buf, len, offset, &temperature, sizeof(temperature));
-}
 
 void bt_ready(int err)
 {
@@ -78,6 +69,17 @@ int init_ble(void)
 	return 0;
 }
 
+static int notify_adc(void)
+{
+	printk("notify atc2 ");
+	static uint8_t level[20] = { 'A', '0', '.', '2', '8', ',', '0', '.', '1', '4', ',', '1', '.', '8', '2', };
+
+	int rc;
+	rc = bt_gatt_notify(NULL, &custom_srv.attrs[2], &level, sizeof(level));
+
+	return rc == -ENOTCONN ? 0 : rc;
+}
+
 int main(void)
 {
 	printk("Hello world! %s\n", CONFIG_BOARD);
@@ -100,9 +102,10 @@ int main(void)
 
 	while (true)
 	{
-		k_msleep(2000);
+		//k_msleep(2000);
 
-		printk("Hello world! %s\n", CONFIG_BOARD);
+		//printk("Hello world! %s\n", CONFIG_BOARD);
+		notify_adc();
 	}
 	//printk("Hello world! %s\n", CONFIG_BOARD);
 
