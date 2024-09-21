@@ -20,6 +20,7 @@ namespace OpenDataDisc.Services.Models
 
         public SensorData(string sensorString)
         {
+            sensorString = sensorString.Trim();
             Date = DateTimeOffset.Now.ToUnixTimeSeconds();
             Type = sensorString.StartsWith("A") ? SensorType.Accelerometer : SensorType.Gyroscope;
             string[] measurements = sensorString.Substring(1).Split(',');
