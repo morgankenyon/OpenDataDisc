@@ -66,6 +66,17 @@ int main(void)
             }
 
             //calculate temperature with values in i2c_buffer
+            int16_t output = (int16_t)i2c_buffer[0] | (int16_t)(i2c_buffer[1] << 8);
+
+            //calculation taken from: https://github.com/Seeed-Studio/Seeed_Arduino_LSM6DS3/blob/master/LSM6DS3.cpp
+            
+            //temp sensitivity pulled from the above library for the LSM6DS3
+            //also found in LSM6DS3 datasheet section 4.3
+            float tempF = (float)output / 16; //divide by tempSensitivity to scale
+            tempF += 25; //Add 25 degrees to remove offset
+            tempF = (tempF * 9) / 5 + 32;
+
+            printk("read temperature: %f", tempF);
         } while (false);
 
         k_msleep(SLEEP_TIME_MS);
