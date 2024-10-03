@@ -12,9 +12,11 @@ static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 static uint8_t i2c_buffer[2];
 
 
-#define IMU_ADDRESS 0x6A
+#define IMU_ADDRESS 0x6B
 
 //falling register naming convetion located here: https://github.com/Seeed-Studio/Seeed_Arduino_LSM6DS3/blob/master/LSM6DS3.h
+//WHO_AM_I
+#define LSM6DS3_ACC_GYRO_WHO_AM_I_REG       0X0F
 //temperature registers
 #define LSM6DS3_ACC_GYRO_OUT_TEMP_L         0x20
 #define LSM6DS3_ACC_GYRO_OUT_TEMP_H         0x21
@@ -43,8 +45,23 @@ int main(void)
         return 0;
     }
 
+
     while (true)
     {
+        i2c_buffer[0] = LSM6DS3_ACC_GYRO_WHO_AM_I_REG;
+        
+        uint8_t firstCheck = (uint8_t)i2c_buffer[0];
+        printk("first check: %d\n", firstCheck);
+
+        err = i2c_write(i2c_dev, i2c_buffer, 1, IMU_ADDRESS);
+        if (err < 0)
+        {
+            uint8_t readCheck = (uint8_t)i2c_buffer[0];
+            printk("who am I failed: %d, %d\n", err, readCheck);
+            break;
+        }
+
+        //getting temperature
         i2c_buffer[0] = LSM6DS3_ACC_GYRO_OUT_TEMP_L;
 
         do
@@ -76,7 +93,7 @@ int main(void)
             tempF += 25; //Add 25 degrees to remove offset
             tempF = (tempF * 9) / 5 + 32;
 
-            printk("read temperature: %f", tempF);
+            printk("read temperature: %f\n", tempF);
         } while (false);
 
         k_msleep(SLEEP_TIME_MS);

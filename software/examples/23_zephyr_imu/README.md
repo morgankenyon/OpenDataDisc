@@ -39,4 +39,10 @@ Then GND and 3v3 connections.
   * `i2c0` didn't seem to be the proper name of that i2c node. I could use either `arduino_i2c` or `i2c1`.
   * Moving to `arduino_i2c` resulted in a successful build for me locally.
 * `CONFIG_NEWLIB_LIBC_FLOAT_PRINTF was assigned the value y, but got the value n. Missing dependencies: NEWLIB_LIBC`
-  * 
+  * I removed this from my config file, never really dug into why it was given me an issue
+* `i2c_write` fails with a -5 error
+  * From this page: https://software-dl.ti.com/simplelink/esd/simplelink_cc13x2_26x2_sdk/5.20.00.52/exports/docs/drivers/doxygen/html/group___i2_c___s_t_a_t_u_s.html
+  * -5 = I2C_STATUS_ADDR_NACK (I2C slave address not acknowledged.)
+  * confirmed the SA0 pin is connected to ground to try to ensure the i2c device is at memory address 0x6A
+  * I probably need to scan through all addresses to see if it shows up anywhere else.
+  * Turns out it as at memory address 0x6B for some reason. I'll try to debug further.
