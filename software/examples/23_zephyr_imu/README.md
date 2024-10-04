@@ -46,3 +46,21 @@ Then GND and 3v3 connections.
   * confirmed the SA0 pin is connected to ground to try to ensure the i2c device is at memory address 0x6A
   * I probably need to scan through all addresses to see if it shows up anywhere else.
   * Turns out it as at memory address 0x6B for some reason. I'll try to debug further.
+* `read temperature: *float*`
+  * Could not print a float out properly.
+  * Set this in the `prj.conf` file:
+    * `CONFIG_CBPRINTF_FP_SUPPORT=y`
+    * It gave this warning though: `Build the cbprintf utility function with support for floating point format specifiers. Selecting this increases stack size requirements slightly, but increases code size significantly.`
+  * So apparently enabling float printing has it's drawbacks
+  * Since I'm in debug mode it's fine.
+* The only temperature value it's printing is 77 F.
+  * The IMU might be in test mode.
+  * I needed to configure both my Gyro and Accelerometer settings.
+  * I did this by writing something to both control registers
+    * acc - LSM6DS3_ACC_GYRO_CTRL1_XL
+    * gyro - LSM6DS3_ACC_GYRO_CTRL2_G
+* Then after that, it started printing out values but was not calibrated.
+  * So I had to measure the temperature, compare against an actual temperature gauge, and calculate how many degrees it was off.
+  * Mine was off by 16 degrees.
+  * The datasheet says the temperature offset would be about +-15 C, which mine is right inline with that.
+![temperature data sheet info](image-1.png)
