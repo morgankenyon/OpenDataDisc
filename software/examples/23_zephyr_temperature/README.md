@@ -1,10 +1,10 @@
-# Zephyr IMU
+# Zephyr Temperature Sensor Tests
 
 My Xiao Sense has a LSM6DS3 IMU built into it.
 
 Previously I was using projectIO to interface with my board. Now that I've moved over to Zephyr, it does not have builtin support for the LSM6DS3.
 
-So I'm attempting to write some code to allow me to pull data from my IMU.
+So I'm attempting to write some code to allow me to pull data from my IMU. I'm going to start with reading from the temperature sensor on the IMU.
 
 LSM6DS3 Data Sheet - https://content.arduino.cc/assets/st_imu_lsm6ds3_datasheet.pdf
 
@@ -27,6 +27,8 @@ SDA = 26
 SCL = 27
 Then GND and 3v3 connections.
 
+I'm also running ground to the SA0 pin, since the SA0 controls what address the device is reachable at.
+
 ## Issues
 
 * fatal error: device.h: No such file or directory
@@ -46,6 +48,7 @@ Then GND and 3v3 connections.
   * confirmed the SA0 pin is connected to ground to try to ensure the i2c device is at memory address 0x6A
   * I probably need to scan through all addresses to see if it shows up anywhere else.
   * Turns out it as at memory address 0x6B for some reason. I'll try to debug further.
+![memory_addresses](image-2.png)
 * `read temperature: *float*`
   * Could not print a float out properly.
   * Set this in the `prj.conf` file:
