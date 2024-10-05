@@ -44,6 +44,40 @@ static uint8_t i2c_buffer[2];
 #define LSM6DS3_ACC_GYRO_OUTZ_L_XL          0X2C
 #define LSM6DS3_ACC_GYRO_OUTZ_H_XL          0X2D
 
+
+typedef enum AccelerometerSampleRate {
+    ACC_POWER_DOWN      = 0x00,
+    ACC_13Hz            = 0x10,
+    ACC_26Hz            = 0x20,
+    ACC_52Hz            = 0x30,
+    ACC_104Hz           = 0x40,
+    ACC_208Hz           = 0x50,
+    ACC_416Hz           = 0x60,
+    ACC_833Hz           = 0x70,
+    ACC_1660Hz          = 0x80,
+    ACC_3330Hz          = 0x90,
+    ACC_6660Hz          = 0xA0,
+    ACC_13330Hz         = 0xB0,
+} AccelerometerSampleRate;
+
+typedef enum GyroSampleRate {
+    GYRO_POWER_DOWN     = 0x00,
+    GYRO_13Hz           = 0x10,
+    GYRO_26Hz           = 0x20,
+    GYRO_52Hz           = 0x30,
+    GYRO_104Hz          = 0x40,
+    GYRO_208Hz          = 0x50,
+    GYRO_416Hz          = 0x60,
+    GYRO_833Hz          = 0x70,
+    GYRO_1660Hz         = 0x80,
+} GyroSampleRate;
+
+typedef struct IMU_Settings
+{
+    AccelerometerSampleRate accSampleRate;
+    GyroSampleRate gyroSampleRate;
+} IMU_Settings;
+
 //read value from the register passed in
 uint8_t read_control_register(uint8_t offset)
 {
@@ -86,6 +120,33 @@ void write_control_register(uint8_t offset, uint8_t dataToWrite)
     }
 }
 
+//configure IMU to specified settings
+//sets the IMU control registers based on based in values
+void configure_imu(IMU_Settings settings)
+{
+    uint8_t dataToWrite = 0;
+
+    //accelerometer sample rate
+    dataToWrite = settings.accSampleRate;
+
+    //write accelerometer to register
+    //TODO: this control register also controls the accelerometer scale, which I'll worry about later
+    write_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL, dataToWrite);
+
+    //reset
+    dataToWrite = 0;
+
+    //gyro sample rate
+    dataToWrite = settings.gyroSampleRate;
+
+    //write gyro to register
+    //TODO: This control register also controls the rotation scale, will do this later
+    write_control_register(LSM6DS3_ACC_GYRO_CTRL2_G, dataToWrite);
+
+    //reset
+    dataToWrite = 0;
+}
+
 int main(void)
 {
     int err;
@@ -97,28 +158,17 @@ int main(void)
         return 0;
     }
 
-    
-    //read config value from accelerometer register
-    //uint8_t accConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL);
-    //printk("acc control register: %d\n", accConfigValue);
+    struct IMU_Settings settings;
+    settings.accSampleRate = ACC_13330Hz;
+    settings.gyroSampleRate = GYRO_104Hz;
 
-    //configure accelerometer, check datasheet to see what 16 turned to binary means for this register
-    uint8_t accControlValue = 16;
-    write_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL, accControlValue);
+    configure_imu(settings);
 
-    //confirm write was successful
+    //confirm accelerometer sample rate value
     uint8_t accUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL);
     printk("updated acc control register: %d\n", accUpdatedConfigValue);
 
-    //read config value from gyro register
-    //uint8_t gyroConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL2_G);
-    //printk("gyro control register: %d\n", gyroConfigValue);
-
-    //configure gyro, check datasheet to see what 16 turned into binary means for this register
-    uint8_t gyroControlValue = 16;
-    write_control_register(LSM6DS3_ACC_GYRO_CTRL2_G, gyroControlValue);
-
-    //confirm value is correct
+    //confirm gyro sample rate value
     uint8_t gyroUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL2_G);
     printk("updated gyro control register: %d\n", gyroUpdatedConfigValue);
 
