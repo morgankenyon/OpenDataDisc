@@ -46,35 +46,51 @@ static uint8_t i2c_buffer[2];
 
 
 typedef enum AccelerometerSampleRate {
-    ACC_POWER_DOWN      = 0x00,
-    ACC_13Hz            = 0x10,
-    ACC_26Hz            = 0x20,
-    ACC_52Hz            = 0x30,
-    ACC_104Hz           = 0x40,
-    ACC_208Hz           = 0x50,
-    ACC_416Hz           = 0x60,
-    ACC_833Hz           = 0x70,
-    ACC_1660Hz          = 0x80,
-    ACC_3330Hz          = 0x90,
-    ACC_6660Hz          = 0xA0,
-    ACC_13330Hz         = 0xB0,
+    ACC_SR_POWER_DOWN      = 0x00,
+    ACC_SR_13Hz            = 0x10,
+    ACC_SR_26Hz            = 0x20,
+    ACC_SR_52Hz            = 0x30,
+    ACC_SR_104Hz           = 0x40,
+    ACC_SR_208Hz           = 0x50,
+    ACC_SR_416Hz           = 0x60,
+    ACC_SR_833Hz           = 0x70,
+    ACC_SR_1660Hz          = 0x80,
+    ACC_SR_3330Hz          = 0x90,
+    ACC_SR_6660Hz          = 0xA0,
+    ACC_SR_13330Hz         = 0xB0,
 } AccelerometerSampleRate;
 
+typedef enum AccelerometerScale {
+    ACC_SCALE_2G              = 0x00,
+    ACC_SCALE_16G             = 0x04,
+    ACC_SCALE_4G              = 0x08,
+    ACC_SCALE_8G              = 0x0C,
+} AccelerometerScale;
+
+typedef enum AccelerometerBandwidth {
+    ACC_BANDWIDTH_400HZ     = 0x00,
+    ACC_BANDWIDTH_200HZ     = 0x01,
+    ACC_BANDWIDTH_100HZ     = 0x02,
+    ACC_BANDWIDTH_50HZ      = 0x03,
+} AccelerometerBandwidth;
+
 typedef enum GyroSampleRate {
-    GYRO_POWER_DOWN     = 0x00,
-    GYRO_13Hz           = 0x10,
-    GYRO_26Hz           = 0x20,
-    GYRO_52Hz           = 0x30,
-    GYRO_104Hz          = 0x40,
-    GYRO_208Hz          = 0x50,
-    GYRO_416Hz          = 0x60,
-    GYRO_833Hz          = 0x70,
-    GYRO_1660Hz         = 0x80,
+    GYRO_SR_POWER_DOWN     = 0x00,
+    GYRO_SR_13Hz           = 0x10,
+    GYRO_SR_26Hz           = 0x20,
+    GYRO_SR_52Hz           = 0x30,
+    GYRO_SR_104Hz          = 0x40,
+    GYRO_SR_208Hz          = 0x50,
+    GYRO_SR_416Hz          = 0x60,
+    GYRO_SR_833Hz          = 0x70,
+    GYRO_SR_1660Hz         = 0x80,
 } GyroSampleRate;
 
 typedef struct IMU_Settings
 {
     AccelerometerSampleRate accSampleRate;
+    AccelerometerScale accScale;
+    AccelerometerBandwidth accBandwidth;
     GyroSampleRate gyroSampleRate;
 } IMU_Settings;
 
@@ -126,8 +142,18 @@ void configure_imu(IMU_Settings settings)
 {
     uint8_t dataToWrite = 0;
 
-    //accelerometer sample rate
-    dataToWrite = settings.accSampleRate;
+    //configuring accelerometer
+    //each of these settings is stored in different bits of the register
+    //so can OR them each individually and they'll set the correct bits
+    //The LSM6DS3_ACC_GYRO_CTRL1_XL register is configured as follows:
+    //first 4 bits:sampleRate
+    //next 2 bits: scale
+    //next 2 bits: bandwidth
+    //this is reading left to right from the datasheet
+    //Right now don't quite know which bit is MSB and LSB.
+    dataToWrite |= settings.accBandwidth;
+    dataToWrite |= settings.accScale;
+    dataToWrite |= settings.accSampleRate;
 
     //write accelerometer to register
     //TODO: this control register also controls the accelerometer scale, which I'll worry about later
@@ -159,8 +185,10 @@ int main(void)
     }
 
     struct IMU_Settings settings;
-    settings.accSampleRate = ACC_13330Hz;
-    settings.gyroSampleRate = GYRO_104Hz;
+    settings.accSampleRate = ACC_SR_13330Hz;
+    settings.accScale = ACC_SCALE_4G;
+    settings.accBandwidth = ACC_BANDWIDTH_50HZ;
+    settings.gyroSampleRate = GYRO_SR_104Hz;
 
     configure_imu(settings);
 
