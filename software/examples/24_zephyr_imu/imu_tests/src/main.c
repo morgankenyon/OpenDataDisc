@@ -172,6 +172,8 @@ void configure_imu(IMU_Settings settings)
     //write accelerometer config to register
     write_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL, dataToWrite);
 
+    //might still need to worry about the CTRL4_C register, not 100% sure at this point.
+
     //reset
     dataToWrite = 0;
 
@@ -195,6 +197,29 @@ void configure_imu(IMU_Settings settings)
 
     //reset
     dataToWrite = 0;
+}
+
+//uses IMU_settings to turn raw sensor values into correct values
+float calibrate_raw_accelerometer_value(IMU_Settings settings, int16_t input)
+{
+    float constant = 0.061;
+    int scale = 1;
+    switch (settings.accScale)
+    {
+        case ACC_SCALE_2G:
+            scale = 1;
+        case ACC_SCALE_4G:
+            scale = 2;
+        case ACC_SCALE_8G:
+            scale = 3;
+        case ACC_SCALE_16G:
+            scale = 4;
+    }
+
+    float scaledConstant = constant * (scale >> 1);
+    printk("scaledConstant: %d\n", scaledConstant);
+
+    return (float)input * scaledConstant / 1000;
 }
 
 int main(void)
@@ -264,6 +289,34 @@ int main(void)
             float tempF = (tempC * 9) / 5 + 32;
 
             printk("%d: temperature C: %f, F: %f\n", count, tempC, tempF);
+
+            //reading Z value from accelerometer
+            i2c_buffer[0] = LSM6DS3_ACC_GYRO_OUTZ_L_XL;
+
+            //write the Z value register to device
+            err = i2c_write(i2c_dev, i2c_buffer, 1, IMU_ADDRESS);
+            if (err < 0)
+            {
+                printk("write failed: %d\n", err);
+                break;
+            }
+
+            //both Z value bytes from register
+            err = i2c_read(i2c_dev, i2c_buffer, 2, IMU_ADDRESS);
+            if (err < 0)
+            {
+                printk("read failed: %d\n", err);
+                break;
+            }
+
+            //read raw data from i2c_buffer
+            output = (int16_t)i2c_buffer[0] | (int16_t)(i2c_buffer[1] << 8);
+            float accZ = (float)output;
+            float scaledAccZ = calibrate_raw_accelerometer_value(settings, output);
+
+            printk("%d: raw accZ: %f, scaled accZ: %f\n", count, accZ, scaledAccZ);
+
+
             count++;
         } while (false);
 
