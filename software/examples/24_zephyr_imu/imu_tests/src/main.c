@@ -86,12 +86,26 @@ typedef enum GyroSampleRate {
     GYRO_SR_1660Hz         = 0x80,
 } GyroSampleRate;
 
+typedef enum GyroScale {
+    GYRO_SCALE_250dps       = 0x00,
+    GYRO_SCALE_500dps       = 0x04,
+    GYRO_SCALE_1000dps      = 0x08,
+    GYRO_SCALE_2000dps      = 0x0C,
+} GyroScale;
+
+typedef enum GyroFullScale {
+    GYRO_FULLSCALE_125dps_DISABLED      = 0x00,
+    GYRO_FULLSCALE_125dps_ENABLED       = 0x02,
+} GyroFullScale;
+
 typedef struct IMU_Settings
 {
     AccelerometerSampleRate accSampleRate;
     AccelerometerScale accScale;
     AccelerometerBandwidth accBandwidth;
     GyroSampleRate gyroSampleRate;
+    GyroScale gyroScale;
+    GyroFullScale gyroFullScale;
 } IMU_Settings;
 
 //read value from the register passed in
@@ -155,15 +169,25 @@ void configure_imu(IMU_Settings settings)
     dataToWrite |= settings.accScale;
     dataToWrite |= settings.accSampleRate;
 
-    //write accelerometer to register
-    //TODO: this control register also controls the accelerometer scale, which I'll worry about later
+    //write accelerometer config to register
     write_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL, dataToWrite);
 
     //reset
     dataToWrite = 0;
 
-    //gyro sample rate
-    dataToWrite = settings.gyroSampleRate;
+    //configuring gyroscope
+    //much like the accerelometer, each of these settings is stored
+    //in different bits of the register. So we can OR them and they'll
+    //set the correct bits.
+    //The LSM6DS3_ACC_GYRO_CTRL2_G register is configured as follows
+    //first 4 bits: sampleRate
+    //next 2 bits: scale
+    //next 1 bit: fullScale (really continuation of scale I believe)
+    //last bit: 0 (never changes)
+    //again, not 100% sure which bit is MSB and LSB
+    dataToWrite |= settings.gyroFullScale;
+    dataToWrite |= settings.gyroScale;
+    dataToWrite |= settings.gyroSampleRate;
 
     //write gyro to register
     //TODO: This control register also controls the rotation scale, will do this later
@@ -188,7 +212,9 @@ int main(void)
     settings.accSampleRate = ACC_SR_13330Hz;
     settings.accScale = ACC_SCALE_4G;
     settings.accBandwidth = ACC_BANDWIDTH_50HZ;
-    settings.gyroSampleRate = GYRO_SR_104Hz;
+    settings.gyroSampleRate = GYRO_SR_1660Hz;
+    settings.gyroScale = GYRO_SCALE_2000dps;
+    settings.gyroFullScale = GYRO_FULLSCALE_125dps_DISABLED;
 
     configure_imu(settings);
 
