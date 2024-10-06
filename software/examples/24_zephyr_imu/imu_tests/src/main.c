@@ -10,6 +10,7 @@
 static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 
 static uint8_t i2c_buffer[2];
+static uint8_t acc_buffer[6];
 
 //These addresses needs to be associated with the input to the SA0 pin
 #define IMU_ADDRESS 0x6A            //imu address when SA0 connected to ground
@@ -107,6 +108,13 @@ typedef struct IMU_Settings
     GyroScale gyroScale;
     GyroFullScale gyroFullScale;
 } IMU_Settings;
+
+typedef struct AcceloremeterReadings
+{
+    float AccX;
+    float AccY;
+    float AccZ;
+} AcceloremeterReadings;
 
 //read value from the register passed in
 uint8_t read_control_register(uint8_t offset)
@@ -222,6 +230,43 @@ float calibrate_raw_accelerometer_value(IMU_Settings settings, int16_t input)
     return (float)input * scaledConstant / 1000;
 }
 
+AcceloremeterReadings pull_accelerometer_values(IMU_Settings settings)
+{
+    int err;
+    acc_buffer[0] = LSM6DS3_ACC_GYRO_OUTX_L_XL;
+
+    //write the X value register to device
+    err = i2c_write(i2c_dev, acc_buffer, 1, IMU_ADDRESS);
+    if (err < 0)
+    {
+        printk("write failed: %d\n", err);
+    }
+
+    //read all direction values from registers
+    //first 2 bytes are X, middle 2 bytes are Y, last 2 bytes are Z
+    err = i2c_read(i2c_dev, acc_buffer, 6, IMU_ADDRESS);
+    if (err < 0)
+    {
+        printk("read failed: %d\n", err);
+    }
+
+    //parse out different values from 6 byte buffer
+    int16_t xOutput = (int16_t)i2c_buffer[0] | (int16_t)(i2c_buffer[1] << 8);
+    int16_t yOutput = (int16_t)i2c_buffer[2] | (int16_t)(i2c_buffer[3] << 8);
+    int16_t zOutput = (int16_t)i2c_buffer[4] | (int16_t)(i2c_buffer[5] << 8);
+
+    float accX = calibrate_raw_accelerometer_value(settings, xOutput);
+    float accY = calibrate_raw_accelerometer_value(settings, yOutput);
+    float accZ = calibrate_raw_accelerometer_value(settings, zOutput);
+
+    struct AcceloremeterReadings readings;
+    readings.AccX = accX;
+    readings.AccY = accY;
+    readings.AccZ = accZ;
+
+    return readings;
+} 
+
 int main(void)
 {
     int err;
@@ -252,73 +297,13 @@ int main(void)
     printk("updated gyro control register: %d\n", gyroUpdatedConfigValue);
 
     int count = 0;
+
     while (true)
     {
-        //getting temperature to setting buffer to temperature register
-        i2c_buffer[0] = LSM6DS3_ACC_GYRO_OUT_TEMP_L;
+        struct AcceloremeterReadings readings = pull_accelerometer_values(settings);
+        printk("%d: X: %f, Y: %f, Z: %f\n", count, readings.AccX, readings.AccY, readings.AccZ);
 
-        do
-        {
-            //write the temperature register to device
-            err = i2c_write(i2c_dev, i2c_buffer, 1, IMU_ADDRESS);
-            if (err < 0)
-            {
-                printk("write failed: %d\n", err);
-                break;
-            }
-
-            //both temperature bytes from register
-            err = i2c_read(i2c_dev, i2c_buffer, 2, IMU_ADDRESS);
-            if (err < 0)
-            {
-                printk("read failed: %d\n", err);
-                break;
-            }
-
-            //read raw data from i2c_buffer
-            int16_t output = (int16_t)i2c_buffer[0] | (int16_t)(i2c_buffer[1] << 8);
-
-            //Help for temperature calculation taken from: https://github.com/Seeed-Studio/Seeed_Arduino_LSM6DS3/blob/master/LSM6DS3.cpp
-            //temp sensitivity pulled from the above library for the LSM6DS3
-            //also found in LSM6DS3 datasheet section 4.3
-            float tempC = (float)output / 16.0;
-            
-            tempC += 25; //default temperature reference, pulled from datasheet
-
-            //convert to F
-            float tempF = (tempC * 9) / 5 + 32;
-
-            printk("%d: temperature C: %f, F: %f\n", count, tempC, tempF);
-
-            //reading Z value from accelerometer
-            i2c_buffer[0] = LSM6DS3_ACC_GYRO_OUTZ_L_XL;
-
-            //write the Z value register to device
-            err = i2c_write(i2c_dev, i2c_buffer, 1, IMU_ADDRESS);
-            if (err < 0)
-            {
-                printk("write failed: %d\n", err);
-                break;
-            }
-
-            //both Z value bytes from register
-            err = i2c_read(i2c_dev, i2c_buffer, 2, IMU_ADDRESS);
-            if (err < 0)
-            {
-                printk("read failed: %d\n", err);
-                break;
-            }
-
-            //read raw data from i2c_buffer
-            output = (int16_t)i2c_buffer[0] | (int16_t)(i2c_buffer[1] << 8);
-            float accZ = (float)output;
-            float scaledAccZ = calibrate_raw_accelerometer_value(settings, output);
-
-            printk("%d: raw accZ: %f, scaled accZ: %f\n", count, accZ, scaledAccZ);
-
-
-            count++;
-        } while (false);
+        count++;
 
         k_msleep(SLEEP_TIME_MS);
     }
