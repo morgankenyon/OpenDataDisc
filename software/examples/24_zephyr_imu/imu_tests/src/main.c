@@ -251,9 +251,9 @@ AcceloremeterReadings pull_accelerometer_values(IMU_Settings settings)
     }
 
     //parse out different values from 6 byte buffer
-    int16_t xOutput = (int16_t)i2c_buffer[0] | (int16_t)(i2c_buffer[1] << 8);
-    int16_t yOutput = (int16_t)i2c_buffer[2] | (int16_t)(i2c_buffer[3] << 8);
-    int16_t zOutput = (int16_t)i2c_buffer[4] | (int16_t)(i2c_buffer[5] << 8);
+    int16_t xOutput = (int16_t)acc_buffer[0] | (int16_t)(acc_buffer[1] << 8);
+    int16_t yOutput = (int16_t)acc_buffer[2] | (int16_t)(acc_buffer[3] << 8);
+    int16_t zOutput = (int16_t)acc_buffer[4] | (int16_t)(acc_buffer[5] << 8);
 
     float accX = calibrate_raw_accelerometer_value(settings, xOutput);
     float accY = calibrate_raw_accelerometer_value(settings, yOutput);
