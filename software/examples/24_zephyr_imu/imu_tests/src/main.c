@@ -360,7 +360,7 @@ int main(void)
     settings.accScale = ACC_SCALE_4G;
     settings.accBandwidth = ACC_BANDWIDTH_50HZ;
     settings.gyroSampleRate = GYRO_SR_1660Hz;
-    settings.gyroScale = GYRO_SCALE_2000dps;
+    settings.gyroScale = GYRO_SCALE_250dps;
     settings.gyroFullScale = GYRO_FULLSCALE_125dps_DISABLED;
 
     configure_imu(settings);
@@ -377,8 +377,8 @@ int main(void)
 
     while (true)
     {
-        //struct AcceloremeterReadings readings = pull_accelerometer_values(settings);
-        //printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, readings.AccX, readings.AccY, readings.AccZ);
+        struct AcceloremeterReadings readings = pull_accelerometer_values(settings);
+        printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, readings.AccX, readings.AccY, readings.AccZ);
 
         struct GyroReadings gyroReadings = pull_gyro_values(settings);
         printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroReadings.GyroX, gyroReadings.GyroY, gyroReadings.GyroZ);
