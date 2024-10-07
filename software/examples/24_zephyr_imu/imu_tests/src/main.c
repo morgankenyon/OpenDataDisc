@@ -116,6 +116,13 @@ typedef struct AcceloremeterReadings
     float AccZ;
 } AcceloremeterReadings;
 
+typedef struct GyroReadings
+{
+    float GyroX;
+    float GyroY;
+    float GyroZ;
+} GyroReadings;
+
 //read value from the register passed in
 uint8_t read_control_register(uint8_t offset)
 {
@@ -215,17 +222,20 @@ float calibrate_raw_accelerometer_value(IMU_Settings settings, int16_t input)
     switch (settings.accScale)
     {
         case ACC_SCALE_2G:
-            scale = 1;
+            scale = 0;
+            break;
         case ACC_SCALE_4G:
-            scale = 2;
+            scale = 1;
+            break;
         case ACC_SCALE_8G:
-            scale = 3;
+            scale = 2;
+            break;
         case ACC_SCALE_16G:
-            scale = 4;
+            scale = 3;
+            break;
     }
 
-    float scaledConstant = constant * (scale >> 1);
-    printk("scaledConstant: %d\n", scaledConstant);
+    float scaledConstant = constant * (1 << scale);
 
     return (float)input * scaledConstant / 1000;
 }
@@ -265,7 +275,9 @@ AcceloremeterReadings pull_accelerometer_values(IMU_Settings settings)
     readings.AccZ = accZ;
 
     return readings;
-} 
+}
+
+
 
 int main(void)
 {
