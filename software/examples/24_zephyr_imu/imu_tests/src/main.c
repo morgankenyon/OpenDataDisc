@@ -277,7 +277,72 @@ AcceloremeterReadings pull_accelerometer_values(IMU_Settings settings)
     return readings;
 }
 
+//take raw gyro input and output calibrated values
+float calibrate_raw_gyro_value(IMU_Settings settings, int16_t input)
+{
+    int scale = 1;
+    switch (settings.gyroScale)
+    {
+        //Don't have 125dps, probably won't need it for this project
+        // case GYRO_SCALE_250dps:
+        //     scale = 0;
+        //     break;
+        case GYRO_SCALE_250dps:
+            scale = 250;
+            break;
+        case GYRO_SCALE_500dps:
+            scale = 500;
+            break;
+        case GYRO_SCALE_1000dps:
+            scale = 1000;
+            break;
+        case GYRO_SCALE_2000dps:
+            scale = 2000;
+            break;
+    }
+    uint8_t gyroRangeDivisor = scale / 125;
 
+    float output = (float)input * 4.375 * (gyroRangeDivisor) / 1000;
+
+    return output;
+}
+
+GyroReadings pull_gyro_values(IMU_Settings settings)
+{
+    int err;
+    acc_buffer[0] = LSM6DS3_ACC_GYRO_OUTX_L_G;
+
+    //write the X value register to device
+    err = i2c_write(i2c_dev, acc_buffer, 1, IMU_ADDRESS);
+    if (err < 0)
+    {
+        printk("write failed: %d\n", err);
+    }
+
+    //read all direction values from registers
+    //first 2 bytes are X, middle 2 bytes are Y, last 2 bytes are Z
+    err = i2c_read(i2c_dev, acc_buffer, 6, IMU_ADDRESS);
+    if (err < 0)
+    {
+        printk("read failed: %d\n", err);
+    }
+
+    //parse out different values from 6 byte buffer
+    int16_t xOutput = (int16_t)acc_buffer[0] | (int16_t)(acc_buffer[1] << 8);
+    int16_t yOutput = (int16_t)acc_buffer[2] | (int16_t)(acc_buffer[3] << 8);
+    int16_t zOutput = (int16_t)acc_buffer[4] | (int16_t)(acc_buffer[5] << 8);
+
+    float gyroX = calibrate_raw_gyro_value(settings, xOutput);
+    float gyroY = calibrate_raw_gyro_value(settings, yOutput);
+    float gyroZ = calibrate_raw_gyro_value(settings, zOutput);
+
+    struct GyroReadings readings;
+    readings.GyroX = gyroX;
+    readings.GyroY = gyroY;
+    readings.GyroZ = gyroZ;
+
+    return readings;
+}
 
 int main(void)
 {
@@ -312,8 +377,11 @@ int main(void)
 
     while (true)
     {
-        struct AcceloremeterReadings readings = pull_accelerometer_values(settings);
-        printk("%d: X: %f, Y: %f, Z: %f\n", count, readings.AccX, readings.AccY, readings.AccZ);
+        //struct AcceloremeterReadings readings = pull_accelerometer_values(settings);
+        //printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, readings.AccX, readings.AccY, readings.AccZ);
+
+        struct GyroReadings gyroReadings = pull_gyro_values(settings);
+        printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroReadings.GyroX, gyroReadings.GyroY, gyroReadings.GyroZ);
 
         count++;
 
