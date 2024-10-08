@@ -2,15 +2,22 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/i2c.h>
-//#include <zephyr/smf.h>
 #include <zephyr/drivers/gpio.h>
 
+//bluetooth imports
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/conn.h>
+#include <zephyr/bluetooth/gatt.h>
+#include <zephyr/bluetooth/uuid.h>
+
+//General Macros and variables
 #define SLEEP_TIME_MS           2000
 #define I2C_NODE        DT_NODELABEL(arduino_i2c)
 static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 
 static uint8_t acc_buffer[6];
 
+//device specific macros
 //These addresses needs to be associated with the input to the SA0 pin
 #define IMU_ADDRESS 0x6A            //imu address when SA0 connected to ground
 //#define IMU_ADDRESS 0x6B          //imu address when SA0 connected to VDD
@@ -44,7 +51,16 @@ static uint8_t acc_buffer[6];
 #define LSM6DS3_ACC_GYRO_OUTZ_L_XL          0X2C
 #define LSM6DS3_ACC_GYRO_OUTZ_H_XL          0X2D
 
+//bluetooth information
+// UUID of the custom service
+#define ODD_SERV_VAL BT_UUID_128_ENCODE(0x900e9509, 0xa0b2, 0x4d89, 0x9bb6, 0xb5e011e758a0)
+#define ODD_SERVICE BT_UUID_DECLARE_128(ODD_SERV_VAL)
 
+// UUID of the custom temperature characteristic
+#define ODD_SENSOR_CHRC_VAL BT_UUID_128_ENCODE(0x6ef4cd45, 0x7223, 0x43b2, 0xb5c9, 0xd13410b494a5)
+#define ODD_SENSOR_CHRC BT_UUID_DECLARE_128(ODD_SENSOR_CHRC_VAL)
+
+//enums and structs
 typedef enum AccelerometerSampleRate {
     ACC_SR_POWER_DOWN      = 0x00,
     ACC_SR_13Hz            = 0x10,
