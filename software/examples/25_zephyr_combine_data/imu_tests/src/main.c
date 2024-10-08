@@ -99,7 +99,7 @@ typedef enum GyroFullScale {
     GYRO_FULLSCALE_125dps_ENABLED       = 0x02,
 } GyroFullScale;
 
-typedef struct IMU_Settings
+typedef struct IMUSettings
 {
     AccelerometerSampleRate accSampleRate;
     AccelerometerScale accScale;
@@ -107,7 +107,7 @@ typedef struct IMU_Settings
     GyroSampleRate gyroSampleRate;
     GyroScale gyroScale;
     GyroFullScale gyroFullScale;
-} IMU_Settings;
+} IMUSettings;
 
 typedef struct AcceloremeterData
 {
@@ -122,6 +122,12 @@ typedef struct GyroData
     float GyroY;
     float GyroZ;
 } GyroData;
+
+typedef struct IMUData
+{
+    AcceloremeterData aData;
+    GyroData gData;
+} IMUData;
 
 //read value from the register passed in
 uint8_t read_control_register(uint8_t offset)
@@ -167,7 +173,7 @@ void write_control_register(uint8_t offset, uint8_t dataToWrite)
 
 //configure IMU to specified settings
 //sets the IMU control registers based on based in values
-void configure_imu(IMU_Settings settings)
+void configure_imu(IMUSettings settings)
 {
     uint8_t dataToWrite = 0;
 
@@ -214,8 +220,8 @@ void configure_imu(IMU_Settings settings)
     dataToWrite = 0;
 }
 
-//uses IMU_settings to turn raw sensor values into correct values
-float calibrate_raw_accelerometer_value(IMU_Settings settings, int16_t input)
+//uses IMUSettings to turn raw sensor values into correct values
+AcceloremeterData calibrate_raw_accelerometer_values(IMUSettings settings, uint8_t startingIndex)
 {
     float constant = 0.061;
     int scale = 1;
@@ -237,48 +243,26 @@ float calibrate_raw_accelerometer_value(IMU_Settings settings, int16_t input)
 
     float scaledConstant = constant * (1 << scale);
 
-    return (float)input * scaledConstant / 1000;
-}
-
-AcceloremeterData pull_accelerometer_values(IMU_Settings settings)
-{
-    int err;
-    acc_buffer[0] = LSM6DS3_ACC_GYRO_OUTX_L_XL;
-
-    //write the X value register to device
-    err = i2c_write(i2c_dev, acc_buffer, 1, IMU_ADDRESS);
-    if (err < 0)
-    {
-        printk("write failed: %d\n", err);
-    }
-
-    //read all direction values from registers
-    //first 2 bytes are X, middle 2 bytes are Y, last 2 bytes are Z
-    err = i2c_read(i2c_dev, acc_buffer, 6, IMU_ADDRESS);
-    if (err < 0)
-    {
-        printk("read failed: %d\n", err);
-    }
-
     //parse out different values from 6 byte buffer
-    int16_t xOutput = (int16_t)acc_buffer[0] | (int16_t)(acc_buffer[1] << 8);
-    int16_t yOutput = (int16_t)acc_buffer[2] | (int16_t)(acc_buffer[3] << 8);
-    int16_t zOutput = (int16_t)acc_buffer[4] | (int16_t)(acc_buffer[5] << 8);
+    int16_t xOutput = (int16_t)acc_buffer[startingIndex + 0] | (int16_t)(acc_buffer[startingIndex + 1] << 8);
+    int16_t yOutput = (int16_t)acc_buffer[startingIndex + 2] | (int16_t)(acc_buffer[startingIndex + 3] << 8);
+    int16_t zOutput = (int16_t)acc_buffer[startingIndex + 4] | (int16_t)(acc_buffer[startingIndex + 5] << 8);
 
-    float accX = calibrate_raw_accelerometer_value(settings, xOutput);
-    float accY = calibrate_raw_accelerometer_value(settings, yOutput);
-    float accZ = calibrate_raw_accelerometer_value(settings, zOutput);
+    float accX = (float)xOutput * scaledConstant / 1000;
+    float accY = (float)yOutput * scaledConstant / 1000;
+    float accZ = (float)zOutput * scaledConstant / 1000;
 
     struct AcceloremeterData data;
     data.AccX = accX;
     data.AccY = accY;
     data.AccZ = accZ;
 
+
     return data;
 }
 
-//take raw gyro input and output calibrated values
-float calibrate_raw_gyro_value(IMU_Settings settings, int16_t input)
+//take raw gyro inputs and output calibrated values
+GyroData calibrate_raw_gyro_values(IMUSettings settings, uint8_t startingIndex)
 {
     int scale = 1;
     switch (settings.gyroScale)
@@ -302,12 +286,24 @@ float calibrate_raw_gyro_value(IMU_Settings settings, int16_t input)
     }
     uint8_t gyroRangeDivisor = scale / 125;
 
-    float output = (float)input * 4.375 * (gyroRangeDivisor) / 1000;
+    int16_t xOutput = (int16_t)acc_buffer[startingIndex + 0] | (int16_t)(acc_buffer[startingIndex + 1] << 8);
+    int16_t yOutput = (int16_t)acc_buffer[startingIndex + 2] | (int16_t)(acc_buffer[startingIndex + 3] << 8);
+    int16_t zOutput = (int16_t)acc_buffer[startingIndex + 4] | (int16_t)(acc_buffer[startingIndex + 5] << 8);
+    
+    float gyroX = (float)xOutput * 4.375 * (gyroRangeDivisor) / 1000;
+    float gyroY = (float)yOutput * 4.375 * (gyroRangeDivisor) / 1000;
+    float gyroZ = (float)zOutput * 4.375 * (gyroRangeDivisor) / 1000;
 
-    return output;
+    struct GyroData data;
+    data.GyroX = gyroX;
+    data.GyroY = gyroY;
+    data.GyroZ = gyroZ;
+
+    return data;
 }
 
-GyroData pull_gyro_values(IMU_Settings settings)
+//uses settings to read both the Gyro and accelerometer data from the IMU
+IMUData pull_imu_data(IMUSettings settings)
 {
     int err;
     acc_buffer[0] = LSM6DS3_ACC_GYRO_OUTX_L_G;
@@ -319,32 +315,24 @@ GyroData pull_gyro_values(IMU_Settings settings)
         printk("write failed: %d\n", err);
     }
 
-    //read all direction values from registers
-    //first 2 bytes are X, middle 2 bytes are Y, last 2 bytes are Z
-    err = i2c_read(i2c_dev, acc_buffer, 6, IMU_ADDRESS);
+    //read both gyro and accelerometer sensor data from registers
+    //first 6 bytes are gyro, second 6 bytesa re acceleremeter
+    err = i2c_read(i2c_dev, acc_buffer, 12, IMU_ADDRESS);
     if (err < 0)
     {
         printk("read failed: %d\n", err);
     }
 
-    //parse out different values from 6 byte buffer
-    int16_t xOutput = (int16_t)acc_buffer[0] | (int16_t)(acc_buffer[1] << 8);
-    int16_t yOutput = (int16_t)acc_buffer[2] | (int16_t)(acc_buffer[3] << 8);
-    int16_t zOutput = (int16_t)acc_buffer[4] | (int16_t)(acc_buffer[5] << 8);
+    //get gyro data
+    struct GyroData gdata = calibrate_raw_gyro_values(settings, 0);
+    struct AcceloremeterData adata = calibrate_raw_accelerometer_values(settings, 6);
 
-    float gyroX = calibrate_raw_gyro_value(settings, xOutput);
-    float gyroY = calibrate_raw_gyro_value(settings, yOutput);
-    float gyroZ = calibrate_raw_gyro_value(settings, zOutput);
+    struct IMUData imuData;
+    imuData.gData = gdata;
+    imuData.aData = adata;
 
-    struct GyroData data;
-    data.GyroX = gyroX;
-    data.GyroY = gyroY;
-    data.GyroZ = gyroZ;
-
-    return data;
+    return imuData;
 }
-
-
 
 int main(void)
 {
@@ -355,7 +343,7 @@ int main(void)
         return 0;
     }
 
-    struct IMU_Settings settings;
+    struct IMUSettings settings;
     settings.accSampleRate = ACC_SR_13330Hz;
     settings.accScale = ACC_SCALE_4G;
     settings.accBandwidth = ACC_BANDWIDTH_50HZ;
@@ -377,11 +365,15 @@ int main(void)
 
     while (true)
     {
-        struct AcceloremeterData accData = pull_accelerometer_values(settings);
-        printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, accData.AccX, accData.AccY, accData.AccZ);
-
-        struct GyroData gyroData = pull_gyro_values(settings);
-        printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroData.GyroX, gyroData.GyroY, gyroData.GyroZ);
+        struct IMUData imuData = pull_imu_data(settings);
+        struct AcceloremeterData accData = imuData.aData;
+        struct GyroData gyroData = imuData.gData;
+        
+        if (count % 500 == 0)
+        {
+            printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, accData.AccX, accData.AccY, accData.AccZ);
+            printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroData.GyroX, gyroData.GyroY, gyroData.GyroZ);
+        }
 
         count++;
 
