@@ -17,7 +17,7 @@ static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 
 static uint8_t acc_buffer[6];
 
-//device specific macros
+/****************** Device specific Macros  ******************/
 //These addresses needs to be associated with the input to the SA0 pin
 #define IMU_ADDRESS 0x6A            //imu address when SA0 connected to ground
 //#define IMU_ADDRESS 0x6B          //imu address when SA0 connected to VDD
@@ -51,7 +51,8 @@ static uint8_t acc_buffer[6];
 #define LSM6DS3_ACC_GYRO_OUTZ_L_XL          0X2C
 #define LSM6DS3_ACC_GYRO_OUTZ_H_XL          0X2D
 
-//bluetooth information
+
+/****************** Bluetooth Macros  ******************/
 // UUID of the custom service
 #define ODD_SERV_VAL BT_UUID_128_ENCODE(0x900e9509, 0xa0b2, 0x4d89, 0x9bb6, 0xb5e011e758a0)
 #define ODD_SERVICE BT_UUID_DECLARE_128(ODD_SERV_VAL)
@@ -60,7 +61,21 @@ static uint8_t acc_buffer[6];
 #define ODD_SENSOR_CHRC_VAL BT_UUID_128_ENCODE(0x6ef4cd45, 0x7223, 0x43b2, 0xb5c9, 0xd13410b494a5)
 #define ODD_SENSOR_CHRC BT_UUID_DECLARE_128(ODD_SENSOR_CHRC_VAL)
 
-//enums and structs
+volatile bool ble_ready=false;
+
+static const struct bt_data ad[] = 
+{
+    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
+    BT_DATA_BYTES(BT_DATA_UUID128_ALL, ODD_SERV_VAL)
+};
+
+BT_GATT_SERVICE_DEFINE(custom_srv,
+	BT_GATT_PRIMARY_SERVICE(ODD_SERVICE),
+	BT_GATT_CHARACTERISTIC(ODD_SENSOR_CHRC, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL, NULL, NULL),
+	BT_GATT_CCC(NULL, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+);
+
+/****************** Structs and enums  ******************/
 typedef enum AccelerometerSampleRate {
     ACC_SR_POWER_DOWN      = 0x00,
     ACC_SR_13Hz            = 0x10,
@@ -143,6 +158,60 @@ typedef struct IMUData
     AcceloremeterData aData;
     GyroData gData;
 } IMUData;
+
+
+/********************* Bluetooth Code  *****************/
+void bt_ready(int err)
+{
+	if (err)
+	{
+		printk("bt enable returns %d", err);
+	}
+
+	printk("bt_ready!\n");
+	ble_ready = true;
+}
+
+int init_ble(void)
+{
+    printk("Init BLE\n");
+    int err;
+
+    //printk("AfterInit BLE\n");
+    //bt_conn_cb_register(&conn_callbacks);
+
+    err = bt_enable(bt_ready);
+
+    printk("After bt_enable\n");
+    if (err)
+    {
+        printk("Also an error");
+        printk("bt_enable failed (err %d)", err);
+        return err;
+    }
+
+
+    printk("returning");
+
+    return 0;
+}
+
+static int notify_adc(IMUData data)
+{
+    //used to calculate the length needed to create the buffer
+    int len = snprintf(NULL, 0, "%f%f%f", data.aData.AccX, data.aData.AccX, data.aData.AccZ);
+
+    //Different number of floats led to different values here than I would expect
+    //need to dig optimizing this
+    int totalLength = len + 4;
+    char buffer[totalLength];
+    snprintf(buffer, sizeof buffer, "A:%f,%f,%f", data.aData.AccX, data.aData.AccY, data.aData.AccZ);
+
+    int rc;
+    rc = bt_gatt_notify(NULL, &custom_srv.attrs[2], &buffer, sizeof(buffer));
+
+    return rc == -ENOTCONN ? 0 : rc;
+}
 
 //read value from the register passed in
 uint8_t read_control_register(uint8_t offset)
@@ -358,6 +427,23 @@ int main(void)
         return 0;
     }
 
+    init_ble();
+
+    while (!ble_ready)
+    {
+        printk("BLE stack not ready yet\n");
+        k_msleep(100);
+    }
+    printk("BLE stack ready\n");
+
+    int err;
+    err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
+    if (err)
+    {
+        printk("Advertising failed to start (err %d)\n", err);
+        return 1;
+    }
+
     struct IMUSettings settings;
     settings.accSampleRate = ACC_SR_13330Hz;
     settings.accScale = ACC_SCALE_4G;
@@ -368,13 +454,13 @@ int main(void)
 
     configure_imu(settings);
 
-    //confirm accelerometer sample rate value
-    uint8_t accUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL);
-    printk("updated acc control register: %d\n", accUpdatedConfigValue);
+    // //confirm accelerometer sample rate value
+    // uint8_t accUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL);
+    // printk("updated acc control register: %d\n", accUpdatedConfigValue);
 
-    //confirm gyro sample rate value
-    uint8_t gyroUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL2_G);
-    printk("updated gyro control register: %d\n", gyroUpdatedConfigValue);
+    // //confirm gyro sample rate value
+    // uint8_t gyroUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL2_G);
+    // printk("updated gyro control register: %d\n", gyroUpdatedConfigValue);
 
     int count = 0;
 
@@ -384,12 +470,19 @@ int main(void)
         struct AcceloremeterData accData = imuData.aData;
         struct GyroData gyroData = imuData.gData;
         
-        if (count % 500 == 0)
-        {
-            printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, accData.AccX, accData.AccY, accData.AccZ);
-            printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroData.GyroX, gyroData.GyroY, gyroData.GyroZ);
-        }
+        // if (count % 500 == 0)
+        // {
+        //     printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, accData.AccX, accData.AccY, accData.AccZ);
+        //     printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroData.GyroX, gyroData.GyroY, gyroData.GyroZ);
+        // }
 
+        printk("%d: Writing to bluetooth service\n", count);
+        err = notify_adc(imuData);
+        if (err)
+        {
+            printk("Writing failed (err %d)\n", err);
+            return 1;
+        }
         count++;
 
         k_msleep(SLEEP_TIME_MS);

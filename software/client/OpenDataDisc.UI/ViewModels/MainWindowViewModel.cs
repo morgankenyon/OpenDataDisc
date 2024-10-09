@@ -25,8 +25,8 @@ public class MainWindowViewModel : ViewModelBase
     //reference values
     //private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758b0"));
     //private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494f5"));
-    private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758b0"));
-    private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494f5"));
+    private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758a0"));
+    private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494a5"));
 
     //di references
     private readonly ISensorService _sensorService;
@@ -161,18 +161,25 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (e.Value != null)
             {
-                var strReceived = System.Text.Encoding.Default.GetString(e.Value);
+                var strR = System.Text.Encoding.Default.GetString(e.Value);
+                var strReceived = strR.Split("\0")[0];
                 if (double.TryParse(strReceived, out var result))
                 {
                     Console.WriteLine($"Received - {result}");
                 }
+                else if (!string.IsNullOrWhiteSpace(strReceived))
+                {
+                    messages.Add(strReceived);
+                    updateCount();
+                    //SensorChannel.Writer.TryWrite(new SensorData(str));
+                }
                 else if (e.Value is System.Byte[])
                 {
                     var bytes = e.Value as System.Byte[];
-                    var str = System.Text.Encoding.Default.GetString(bytes);
-                    //messages.Add(str);
+                    var str = System.Text.Encoding.Default.GetString(bytes).Replace("\0", string.Empty);
+                    messages.Add(str);
                     updateCount();
-                    SensorChannel.Writer.TryWrite(new SensorData(str));
+                    //SensorChannel.Writer.TryWrite(new SensorData(str));
                 }
                 else
                 {
@@ -202,6 +209,7 @@ public class MainWindowViewModel : ViewModelBase
         CurrentState = MainWindowState.Connecting;
         var device = selectedDevice.Device;
 
+        //TODO: need to cancel this
         var writeToDatabaseTask = WriteToDatabase().ConfigureAwait(false);
 
         if (device != null)
