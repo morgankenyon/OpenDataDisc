@@ -174,15 +174,10 @@ void bt_ready(int err)
 
 int init_ble(void)
 {
-    printk("Init BLE\n");
     int err;
-
-    //printk("AfterInit BLE\n");
-    //bt_conn_cb_register(&conn_callbacks);
 
     err = bt_enable(bt_ready);
 
-    printk("After bt_enable\n");
     if (err)
     {
         printk("Also an error");
@@ -190,22 +185,30 @@ int init_ble(void)
         return err;
     }
 
-
-    printk("returning");
-
     return 0;
 }
 
 static int notify_adc(IMUData data)
 {
     //used to calculate the length needed to create the buffer
-    int len = snprintf(NULL, 0, "%f%f%f", data.aData.AccX, data.aData.AccX, data.aData.AccZ);
+    int len = snprintf(NULL, 0, "A:%f,%f,%f;G:%f,%f,%f",
+        data.aData.AccX,
+        data.aData.AccX,
+        data.aData.AccZ,
+        data.gData.GyroX,
+        data.gData.GyroY,
+        data.gData.GyroZ);
 
     //Different number of floats led to different values here than I would expect
     //need to dig optimizing this
-    int totalLength = len + 4;
-    char buffer[totalLength];
-    snprintf(buffer, sizeof buffer, "A:%f,%f,%f", data.aData.AccX, data.aData.AccY, data.aData.AccZ);
+    char buffer[len];
+    snprintf(buffer, sizeof buffer, "A:%f,%f,%f;G:%f,%f,%f",
+        data.aData.AccX,
+        data.aData.AccY,
+        data.aData.AccZ,
+        data.gData.GyroX,
+        data.gData.GyroY,
+        data.gData.GyroZ);
 
     int rc;
     rc = bt_gatt_notify(NULL, &custom_srv.attrs[2], &buffer, sizeof(buffer));
