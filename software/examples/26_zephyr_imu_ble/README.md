@@ -22,6 +22,10 @@ CONFIG_BT_L2CAP_TX_MTU=498
 ```
 ## Accomplishment
 
+I'm able to send over about 60 bytes in one bluetooth message, then my C# client can parse that and store it in my SQLite database!!
+
+Let's go!
+
 ## Issues
 
 * Building C strings in zephyr
