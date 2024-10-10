@@ -191,7 +191,7 @@ int init_ble(void)
 static int notify_adc(IMUData data)
 {
     //used to calculate the length needed to create the buffer
-    int len = snprintf(NULL, 0, "A:%f,%f,%f;G:%f,%f,%f",
+    int len = snprintf(NULL, 0, "%f,%f,%f;%f,%f,%f",
         data.aData.AccX,
         data.aData.AccX,
         data.aData.AccZ,
@@ -202,7 +202,7 @@ static int notify_adc(IMUData data)
     //Different number of floats led to different values here than I would expect
     //need to dig optimizing this
     char buffer[len];
-    snprintf(buffer, sizeof buffer, "A:%f,%f,%f;G:%f,%f,%f",
+    snprintf(buffer, sizeof buffer, "%f,%f,%f;%f,%f,%f",
         data.aData.AccX,
         data.aData.AccY,
         data.aData.AccZ,

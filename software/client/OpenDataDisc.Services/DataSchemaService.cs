@@ -87,7 +87,7 @@ namespace OpenDataDisc.Services
                         migrationText = @"
     BEGIN TRANSACTION;
 
-    CREATE Table sensor_data (type VARCHAR(20), date INTEGER, val1 FLOAT, val2 FLOAT, val3 FLOAT);
+    CREATE Table sensor_data (date INTEGER, accX FLOAT, accY FLOAT, accZ FLOAT, gyroX FLOAT, gyroY FLOAT, gyroZ FLOAT);
 
     INSERT INTO migrations (name, number) VALUES ('sensor_data_table', 2);
 
@@ -109,6 +109,6 @@ namespace OpenDataDisc.Services
     {
         Empty = 0,
         MigrationsTable = 1,
-        SensorData = 2,
+        SensorData = 2
     }
 }

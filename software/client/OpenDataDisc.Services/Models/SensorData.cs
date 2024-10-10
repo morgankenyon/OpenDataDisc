@@ -5,66 +5,58 @@ namespace OpenDataDisc.Services.Models
     public class SensorData
     {
         public SensorData(
-            SensorType type,
             long date,
-            float val1,
-            float val2,
-            float val3)
+            float accX,
+            float accY,
+            float accZ,
+            float gyroX,
+            float gyroY,
+            float gyroZ)
         {
-            Type = type;
             Date = date;
-            Val1 = val1;
-            Val2 = val2;
-            Val3 = val3;
+            AccX = accX;
+            AccY = accY;
+            AccZ = accZ;
+            GyroX = gyroX;
+            GyroY = gyroY;
+            GyroZ = gyroZ;
+        }
+
+        private float parseValue(string value)
+        {
+            float val = 0.0f;
+            if (float.TryParse(value, out float parsedValue))
+            {
+                val = parsedValue;
+            }
+            return val;
         }
 
         public SensorData(string sensorString)
         {
             sensorString = sensorString.Trim();
             Date = DateTimeOffset.Now.ToUnixTimeSeconds();
-            Type = sensorString.StartsWith("A") ? SensorType.Accelerometer : SensorType.Gyroscope;
-            string[] measurements = sensorString.Substring(1).Split(',');
-            //parse first val
-            if (float.TryParse(measurements[0], out float v1))
-            {
-                Val1 = v1;
-            }
-            else
-            {
-                v1 = 0.0f;
-            }
+            string[] measurements = sensorString.Split(';');
+            string[] accelerometerValues = measurements[0].Split(',');
+            string[] gyroValues = measurements[1].Split(',');
 
-            //parse second val
-            if (float.TryParse(measurements[1], out float v2))
-            {
-                Val2 = v2;
-            }
-            else
-            {
-                v2 = 0.0f;
-            }
+            //parse accelerometers
+            AccX = parseValue(accelerometerValues[0]);
+            AccY = parseValue(accelerometerValues[1]);
+            AccZ = parseValue(accelerometerValues[2]);
 
-            //parse third val
-            if (float.TryParse(measurements[2], out float v3))
-            {
-                Val3 = v3;
-            }
-            else
-            {
-                v3 = 0.0f;
-            }
+            //parse accelerometers
+            GyroX = parseValue(gyroValues[0]);
+            GyroY = parseValue(gyroValues[1]);
+            GyroZ = parseValue(gyroValues[2]);
         }
 
-        public SensorType Type { get; }
         public long Date { get; }
-        public float Val1 { get; }
-        public float Val2 { get; }
-        public float Val3 { get; }
-    }
-
-    public enum SensorType
-    {
-        Accelerometer = 0,
-        Gyroscope = 1
+        public float AccX { get; }
+        public float AccY { get; }
+        public float AccZ { get; }
+        public float GyroX { get; }
+        public float GyroY { get; }
+        public float GyroZ { get; }
     }
 }

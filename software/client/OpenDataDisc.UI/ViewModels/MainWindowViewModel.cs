@@ -169,9 +169,10 @@ public class MainWindowViewModel : ViewModelBase
                 }
                 else if (!string.IsNullOrWhiteSpace(strReceived))
                 {
-                    messages.Add(strReceived);
+                    //messages.Add(strReceived);
+                    //messages.Add(strReceived);
                     updateCount();
-                    //SensorChannel.Writer.TryWrite(new SensorData(str));
+                    SensorChannel.Writer.TryWrite(new SensorData(strReceived));
                 }
                 else if (e.Value is System.Byte[])
                 {
@@ -230,6 +231,7 @@ public class MainWindowViewModel : ViewModelBase
                     SelectedDevice = selectedDevice;
                     CurrentState = MainWindowState.Connected;
 
+                    //figure out how to cancel this as well
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
