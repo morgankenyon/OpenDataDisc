@@ -6,6 +6,7 @@ namespace OpenDataDisc.Services.Models
     {
         public SensorData(
             long date,
+            long cycleCount,
             float accX,
             float accY,
             float accZ,
@@ -14,6 +15,7 @@ namespace OpenDataDisc.Services.Models
             float gyroZ)
         {
             Date = date;
+            CycleCount = cycleCount;
             AccX = accX;
             AccY = accY;
             AccZ = accZ;
@@ -49,9 +51,18 @@ namespace OpenDataDisc.Services.Models
             GyroX = parseValue(gyroValues[0]);
             GyroY = parseValue(gyroValues[1]);
             GyroZ = parseValue(gyroValues[2]);
+
+            if (measurements.Length >= 3)
+            {
+                if (long.TryParse(measurements[2], out var cycleCount))
+                {
+                    CycleCount = cycleCount;
+                }
+            }
         }
 
         public long Date { get; }
+        public long CycleCount { get; }
         public float AccX { get; }
         public float AccY { get; }
         public float AccZ { get; }
