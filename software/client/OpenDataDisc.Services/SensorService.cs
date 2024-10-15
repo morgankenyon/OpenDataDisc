@@ -47,8 +47,9 @@ namespace OpenDataDisc.Services
 
                 sqlConn.Open();
 
-                var command = new SQLiteCommand("INSERT INTO sensor_data (date, accX, accY, accZ, gyroX, gyroY, gyroZ) VALUES (?, ?, ?, ?, ?, ?, ?)", sqlConn);
+                var command = new SQLiteCommand("INSERT INTO sensor_data (date, cycleCount, accX, accY, accZ, gyroX, gyroY, gyroZ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", sqlConn);
                 command.Parameters.AddWithValue("date", sensorData.Date);
+                command.Parameters.AddWithValue("cycleCount", sensorData.CycleCount);
                 command.Parameters.AddWithValue("accX", sensorData.AccX);
                 command.Parameters.AddWithValue("accY", sensorData.AccY);
                 command.Parameters.AddWithValue("accZ", sensorData.AccZ);
