@@ -486,27 +486,11 @@ int main(void)
 
     configure_imu(settings);
 
-    // //confirm accelerometer sample rate value
-    // uint8_t accUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL);
-    // printk("updated acc control register: %d\n", accUpdatedConfigValue);
-
-    // //confirm gyro sample rate value
-    // uint8_t gyroUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL2_G);
-    // printk("updated gyro control register: %d\n", gyroUpdatedConfigValue);
-
     int count = 0;
 
     while (true)
     {
         struct IMUData imuData = pull_imu_data(settings);
-        // struct AcceloremeterData accData = imuData.aData;
-        // struct GyroData gyroData = imuData.gData;
-        
-        // if (count % 500 == 0)
-        // {
-        //     printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, accData.AccX, accData.AccY, accData.AccZ);
-        //     printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroData.GyroX, gyroData.GyroY, gyroData.GyroZ);
-        // }
 
         printk("%d: Writing to bluetooth service\n", count);
         err = notify_adc(imuData);
