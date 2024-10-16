@@ -4,25 +4,26 @@ This project uses a [XIAO nRF52840 Sense](https://www.seeedstudio.com/Seeed-XIAO
 
 It's main purpose is to establish a bluetooth connection between itself and the client, then send over accelerometer and gyro sensor readings.
 
-## Running
+## Local Project Setup
 
-To upload and run this on a nrf52 sense:
+* Install nRF Connect locally
+  * Here is a YouTube playlist demonstrating how to do that.
+  * https://www.youtube.com/watch?v=EAJdOqsL9m8&list=PLx_tBuQ_KSqEt7NK-H7Lu78lT2OijwIMl
+  * I installed the latest versoin at the time (v2.7.0)
+* Create build folder
+  * By default, the `/build` folder of an nRF Connect project is not checked into git.
+    * This is the default right now, not sure if it should change?
+  * Using the nRF Connect Plugin, add a new build configuration, target the proper board.
+  * nRF 52840 Dev Kit:
+  ![targetting dev kit](image.png)
+    * I used this board during early development
+  * XIAO nRF52840 Sense:
+  ![targetting Xiao Sense board](image-1.png)
+  * Just accept the defaults for everything else.
+* Build and flash using the plugin
+  * Using the nRF Connect Plugin, build and flash the application.
+  * You can use the "Connected Devices" area to view the serial monitor if needed.
 
-* Please refer to [platformIO's documentation](https://docs.platformio.org/en/latest/core/index.html) to download the `pio` command line tool.
-* Plug in your nrf52.
-* Run `pio run --target upload` in the directory containing the `platformio.ini` folder
-  * The first time you run it it takes awhile to build everything.
-  * Subsequent builds are faster.
-* Should upload to your nrf52.
+## Issues and TODOs
 
-### Debugging
-
-I use [platformIO's Visual Studio plugin ](https://platformio.org/install/ide?install=vscode), which allows me to use the serial debugger if I ever need to see what is going on with my nrf52.
-
-## Issues
-
-* Currently I am running into a 20 byte limit of bluetooth messages.
-  * Ideally bluetooth should support up to 512 bytes. Or at least around 50 which would allow me to send both server data points at the same time.
-  * So that's why I'm currently sending 2 different messages, 1 for acceleration and 1 for gyro.
-  * That seems to be the hard coded limit of the bluetooth library I'm using.
-  * So apparent solution.
+None at the moment
