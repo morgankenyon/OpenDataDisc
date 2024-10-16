@@ -163,11 +163,8 @@ public class MainWindowViewModel : ViewModelBase
             {
                 var strR = System.Text.Encoding.Default.GetString(e.Value);
                 var strReceived = strR.Split("\0")[0];
-                if (double.TryParse(strReceived, out var result))
-                {
-                    Console.WriteLine($"Received - {result}");
-                }
-                else if (!string.IsNullOrWhiteSpace(strReceived))
+                
+                if (!string.IsNullOrWhiteSpace(strReceived))
                 {
                     //messages.Add(strReceived);
                     //messages.Add(strReceived);
