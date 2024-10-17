@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using OpenDataDisc.UI.ViewModels;
 using ReactiveUI;
-using System; //this fixed some errors, not sure why
+using System;
 
 namespace OpenDataDisc.UI.Views;
 
@@ -16,6 +16,7 @@ public partial class BluetoothSelectorWindow : ReactiveWindow<BluetoothSelectorV
 
         if (Design.IsDesignMode) return;
 
-        this.WhenActivated(action => action(ViewModel!.SelectBluetoothDeviceCommand.Subscribe(Close)));
+        this.WhenActivated(action =>
+            action(ViewModel!.SelectBluetoothDeviceCommand.Subscribe(Close)));
     }
 }

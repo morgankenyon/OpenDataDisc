@@ -29,13 +29,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\ConfirmationWindow.axaml.cs">
+      <DependentUpon>ConfirmationWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\SelectedDeviceView.axaml.cs">
       <DependentUpon>SelectedDeviceView.axaml</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
   </ItemGroup>
 
   <ItemGroup>

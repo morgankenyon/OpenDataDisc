@@ -1,9 +1,12 @@
 ﻿using InTheHand.Bluetooth;
 using OpenDataDisc.Services.Interfaces;
 using OpenDataDisc.Services.Models;
+using OpenDataDisc.UI.Models;
+using OpenDataDisc.UI.Views;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -23,8 +26,6 @@ public enum MainWindowState
 public class MainWindowViewModel : ViewModelBase
 {
     //reference values
-    //private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758b0"));
-    //private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494f5"));
     private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758a0"));
     private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494a5"));
 
@@ -67,7 +68,8 @@ public class MainWindowViewModel : ViewModelBase
 
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
-    
+    public Interaction<ConfirmationWindowViewModel, ConfirmationResult> ShowConfirmationDialog { get; }
+
     //command for propagating selected device
     public ICommand SelectBluetoothDeviceCommand { get; }
 
@@ -82,18 +84,42 @@ public class MainWindowViewModel : ViewModelBase
         CurrentState = MainWindowState.Unconnected;
 
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
+        ShowConfirmationDialog = new Interaction<ConfirmationWindowViewModel, ConfirmationResult>();
 
         SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            _cancellationTokenSource?.Cancel();
-            var bluetooth = new BluetoothSelectorViewModel();
-
-            var result = await ShowBluetoothDialog.Handle(bluetooth);
-
-            if (result != null)
+            if (CurrentState == MainWindowState.Connected)
             {
-                _cancellationTokenSource = new CancellationTokenSource();
-                await ListenToDevice(result, _cancellationTokenSource.Token);
+                var confirmationDialog = new ConfirmationWindow();
+
+                try
+                {
+                    var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
+                    var result = await ShowConfirmationDialog.Handle(message);
+                    if (result == ConfirmationResult.Yes)
+                    {
+                        _cancellationTokenSource?.Cancel();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageCount++;
+                }
+
+            }
+            else
+            {
+                _cancellationTokenSource?.Cancel();
+                var bluetooth = new BluetoothSelectorViewModel();
+
+                var result = await ShowBluetoothDialog.Handle(bluetooth);
+
+                if (result != null)
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+                    ListenToDevice(result, _cancellationTokenSource.Token);
+                }
+                MessageCount++;
             }
         });
 
@@ -129,12 +155,12 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task CalculateMessagesPerSecond(CancellationToken token)
+    private async void CalculateMessagesPerSecond(CancellationToken token)
     {
         var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
         while (await periodicTimer.WaitForNextTickAsync(token))
         {
-            var messages = await _sensorService.MessagesReceivedInLastNSeconds(15);
+            var messages = await _sensorService.MessagesReceivedInLastNSeconds(15, token);
             var rate = Math.Round(messages / 15.0, 1);
             MessageRate = rate;
         }
@@ -145,11 +171,18 @@ public class MainWindowViewModel : ViewModelBase
     /// it to the db
     /// </summary>
     /// <returns></returns>
-    private async Task WriteToDatabase()
+    private async Task WriteToDatabase(CancellationToken token)
     {
-        await foreach(var sensorData in SensorChannel.Reader.ReadAllAsync())
+        try
         {
-            await _sensorService.SaveSensorData(sensorData);
+            await foreach(var sensorData in SensorChannel.Reader.ReadAllAsync(token))
+            {
+                await _sensorService.SaveSensorData(sensorData, token);
+            }
+        }
+        catch (OperationCanceledException oce)
+        {
+            //TODO: probably log something but don't want to throw in this case
         }
     }
 
@@ -167,17 +200,8 @@ public class MainWindowViewModel : ViewModelBase
                 if (!string.IsNullOrWhiteSpace(strReceived))
                 {
                     //messages.Add(strReceived);
-                    //messages.Add(strReceived);
                     updateCount();
                     SensorChannel.Writer.TryWrite(new SensorData(strReceived));
-                }
-                else if (e.Value is System.Byte[])
-                {
-                    var bytes = e.Value as System.Byte[];
-                    var str = System.Text.Encoding.Default.GetString(bytes).Replace("\0", string.Empty);
-                    messages.Add(str);
-                    updateCount();
-                    //SensorChannel.Writer.TryWrite(new SensorData(str));
                 }
                 else
                 {
@@ -202,13 +226,12 @@ public class MainWindowViewModel : ViewModelBase
         this.MessageCount++;
     }
 
-    private async Task ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
+    private async void ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
     {
         CurrentState = MainWindowState.Connecting;
         var device = selectedDevice.Device;
 
-        //TODO: need to cancel this
-        var writeToDatabaseTask = WriteToDatabase().ConfigureAwait(false);
+        var writeToDatabaseTask = WriteToDatabase(token).ConfigureAwait(false);
 
         if (device != null)
         {
@@ -228,7 +251,6 @@ public class MainWindowViewModel : ViewModelBase
                     SelectedDevice = selectedDevice;
                     CurrentState = MainWindowState.Connected;
 
-                    //figure out how to cancel this as well
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
@@ -241,6 +263,7 @@ public class MainWindowViewModel : ViewModelBase
             device.Gatt.Disconnect();
 
             await writeToDatabaseTask;
+            SelectedDevice = null;
         }
 
         CurrentState = MainWindowState.Unconnected;
