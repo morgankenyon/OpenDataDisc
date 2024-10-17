@@ -76,7 +76,7 @@ public class MainWindowViewModel : ViewModelBase
     //extra    
     private static Channel<SensorData> SensorChannel = Channel.CreateUnbounded<SensorData>();
     public ObservableCollection<string> Messages { get; } = new();
-    private CancellationTokenSource? _cancellationTokenSource;
+    private CancellationTokenSource? _deviceConnectedTokenSource;
     private CancellationTokenSource? _messageRateTokenSource;
     
     public MainWindowViewModel(ISensorService sensorService)
@@ -98,7 +98,7 @@ public class MainWindowViewModel : ViewModelBase
                     var result = await ShowConfirmationDialog.Handle(message);
                     if (result == ConfirmationResult.Yes)
                     {
-                        _cancellationTokenSource?.Cancel();
+                        _deviceConnectedTokenSource?.Cancel();
                     }
                 }
                 catch (Exception ex)
@@ -109,15 +109,15 @@ public class MainWindowViewModel : ViewModelBase
             }
             else
             {
-                _cancellationTokenSource?.Cancel();
+                _deviceConnectedTokenSource?.Cancel();
                 var bluetooth = new BluetoothSelectorViewModel();
 
                 var result = await ShowBluetoothDialog.Handle(bluetooth);
 
                 if (result != null)
                 {
-                    _cancellationTokenSource = new CancellationTokenSource();
-                    ListenToDevice(result, _cancellationTokenSource.Token);
+                    _deviceConnectedTokenSource = new CancellationTokenSource();
+                    ListenToDevice(result, _deviceConnectedTokenSource.Token);
                 }
                 MessageCount++;
             }
@@ -157,12 +157,19 @@ public class MainWindowViewModel : ViewModelBase
 
     private async void CalculateMessagesPerSecond(CancellationToken token)
     {
-        var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
-        while (await periodicTimer.WaitForNextTickAsync(token))
+        try
         {
-            var messages = await _sensorService.MessagesReceivedInLastNSeconds(15, token);
-            var rate = Math.Round(messages / 15.0, 1);
-            MessageRate = rate;
+            var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+            while (await periodicTimer.WaitForNextTickAsync(token))
+            {
+                var messages = await _sensorService.MessagesReceivedInLastNSeconds(15, token);
+                var rate = Math.Round(messages / 15.0, 1);
+                MessageRate = rate;
+            }
+        }
+        catch (OperationCanceledException oce)
+        {
+            //TODO: probably log something, but don't want to rethrow here
         }
     }
 
@@ -196,7 +203,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 var strR = System.Text.Encoding.Default.GetString(e.Value);
                 var strReceived = strR.Split("\0")[0];
-                
+
                 if (!string.IsNullOrWhiteSpace(strReceived))
                 {
                     //messages.Add(strReceived);
@@ -221,6 +228,17 @@ public class MainWindowViewModel : ViewModelBase
         return privateMethod;
     }
 
+    static EventHandler BuildDisconnectEventHandler(
+        CancellationTokenSource? cancellationTokenSource)
+    {
+        EventHandler privateMethod = (object? sender, System.EventArgs e) =>
+        {
+            cancellationTokenSource?.Cancel();
+        };
+
+        return privateMethod;
+    }
+
     private void UpdateCount()
     {
         this.MessageCount++;
@@ -238,6 +256,9 @@ public class MainWindowViewModel : ViewModelBase
             //name of device is changing after connecting for some reason
             await device.Gatt.ConnectAsync();
 
+            //cancel token if device disconnects
+            device.GattServerDisconnected += BuildDisconnectEventHandler(_deviceConnectedTokenSource);
+
             var service = await device.Gatt.GetPrimaryServiceAsync(serviceUuid);
 
             if (service != null)
@@ -254,13 +275,19 @@ public class MainWindowViewModel : ViewModelBase
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
-                    await chars.StopNotificationsAsync();
+                    if (device.Gatt.IsConnected)
+                    {
+                        await chars.StopNotificationsAsync();
+                    }
                 }
             }
 
             CurrentState = MainWindowState.Disconnecting;
 
-            device.Gatt.Disconnect();
+            if (device.Gatt.IsConnected)
+            {
+                device.Gatt.Disconnect();
+            }
 
             await writeToDatabaseTask;
             SelectedDevice = null;
