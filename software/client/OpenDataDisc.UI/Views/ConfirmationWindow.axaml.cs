@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using OpenDataDisc.UI.Models;
@@ -11,11 +10,6 @@ public partial class ConfirmationWindow : ReactiveWindow<ConfirmationWindowViewM
     public ConfirmationWindow()
     {
         InitializeComponent();
-
-        //if (Design.IsDesignMode) return;
-
-        //this.WhenActivated(action => 
-        //    action(ViewModel!.DisconnectBluetoothCommand.Subscribe(Close)));
     }
 
     private void OnYesClick(object sender, RoutedEventArgs e)

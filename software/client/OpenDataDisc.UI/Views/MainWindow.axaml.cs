@@ -12,24 +12,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         InitializeComponent();
 
-        //this.WhenActivated(action =>
-        //    action(ViewModel!.ShowDialog.RegisterHandler(DoShowDialogAsync)));
-
         this.WhenActivated(action =>
             action(ViewModel!.ShowBluetoothDialog.RegisterHandler(DoShowBluetoothSelectorAsync)));
         this.WhenActivated(action =>
             action(ViewModel!.ShowConfirmationDialog.RegisterHandler(DoShowConfirmationDialogAsync)));
     }
-
-    //private async Task DoShowDialogAsync(InteractionContext<MusicStoreViewModel,
-    //                                    AlbumViewModel?> interaction)
-    //{
-    //    var dialog = new MusicStoreWindow();
-    //    dialog.DataContext = interaction.Input;
-
-    //    var result = await dialog.ShowDialog<AlbumViewModel?>(this);
-    //    interaction.SetOutput(result);
-    //}
 
     private async Task DoShowBluetoothSelectorAsync(
         InteractionContext<BluetoothSelectorViewModel, SelectedDeviceViewModel?> interaction)
