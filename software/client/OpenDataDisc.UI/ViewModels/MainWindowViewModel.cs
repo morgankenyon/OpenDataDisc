@@ -1,12 +1,12 @@
 ﻿using InTheHand.Bluetooth;
 using OpenDataDisc.Services.Interfaces;
 using OpenDataDisc.Services.Models;
+using OpenDataDisc.UI.Extensions;
 using OpenDataDisc.UI.Models;
 using OpenDataDisc.UI.Views;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -25,10 +25,6 @@ public enum MainWindowState
 
 public class MainWindowViewModel : ViewModelBase
 {
-    //reference values
-    private readonly BluetoothUuid serviceUuid = BluetoothUuid.FromGuid(Guid.Parse("900e9509-a0b2-4d89-9bb6-b5e011e758a0"));
-    private readonly BluetoothUuid characteristicUuid = BluetoothUuid.FromGuid(Guid.Parse("6ef4cd45-7223-43b2-b5c9-d13410b494a5"));
-
     //di references
     private readonly ISensorService _sensorService;
 
@@ -92,18 +88,11 @@ public class MainWindowViewModel : ViewModelBase
             {
                 var confirmationDialog = new ConfirmationWindow();
 
-                try
+                var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
+                var result = await ShowConfirmationDialog.Handle(message);
+                if (result == ConfirmationResult.Yes)
                 {
-                    var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
-                    var result = await ShowConfirmationDialog.Handle(message);
-                    if (result == ConfirmationResult.Yes)
-                    {
-                        _deviceConnectedTokenSource?.Cancel();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageCount++;
+                    _deviceConnectedTokenSource?.Cancel();
                 }
 
             }
@@ -119,7 +108,6 @@ public class MainWindowViewModel : ViewModelBase
                     _deviceConnectedTokenSource = new CancellationTokenSource();
                     ListenToDevice(result, _deviceConnectedTokenSource.Token);
                 }
-                MessageCount++;
             }
         });
 
@@ -259,11 +247,11 @@ public class MainWindowViewModel : ViewModelBase
             //cancel token if device disconnects
             device.GattServerDisconnected += BuildDisconnectEventHandler(_deviceConnectedTokenSource);
 
-            var service = await device.Gatt.GetPrimaryServiceAsync(serviceUuid);
+            var service = await device.Gatt.GetPrimaryServiceAsync(Constants.ServiceUuid);
 
             if (service != null)
             {
-                var chars = await service.GetCharacteristicAsync(characteristicUuid);
+                var chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
                 if (chars != null)
                 {
                     chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
@@ -275,19 +263,13 @@ public class MainWindowViewModel : ViewModelBase
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
-                    if (device.Gatt.IsConnected)
-                    {
-                        await chars.StopNotificationsAsync();
-                    }
+                    await chars.SafeStopNotificationsAsync();
                 }
             }
 
             CurrentState = MainWindowState.Disconnecting;
 
-            if (device.Gatt.IsConnected)
-            {
-                device.Gatt.Disconnect();
-            }
+            device.Gatt.SafeDisconnect();
 
             await writeToDatabaseTask;
             SelectedDevice = null;
