@@ -9,6 +9,7 @@
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
 		Width="500" Height="350"
+        Background="Transparent"
         WindowStartupLocation="CenterOwner">
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 		<TextBlock Text="Would you like to disconnect your bluetooth device?" Margin="10"/>
