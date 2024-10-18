@@ -5,6 +5,7 @@
 #include <zephyr/drivers/gpio.h>
 
 #include <inttypes.h>
+#include <stdio.h>
 
 //bluetooth imports
 #include <zephyr/bluetooth/bluetooth.h>
@@ -13,7 +14,8 @@
 #include <zephyr/bluetooth/uuid.h>
 
 //General Macros and variables
-#define SLEEP_TIME_MS           2000
+#define CONNECTED_SLEEP_TIME_MS           1000
+#define UNCONNECTED_SLEEP_TIME_MS         4000
 #define I2C_NODE        DT_NODELABEL(arduino_i2c)
 static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 
@@ -64,6 +66,7 @@ static uint8_t acc_buffer[6];
 #define ODD_SENSOR_CHRC BT_UUID_DECLARE_128(ODD_SENSOR_CHRC_VAL)
 
 volatile bool ble_ready=false;
+volatile bool ble_connected=false;
 
 static const struct bt_data ad[] = 
 {
@@ -278,6 +281,29 @@ static int notify_adc(IMUData data)
 
     return rc == -ENOTCONN ? 0 : rc;
 }
+
+/*
+* Callback to run whenever a bluetooth connection occurs
+*/
+static void connected(struct bt_conn *conn, uint8_t conn_err)
+{
+    printk("connected\n");
+    ble_connected = true;
+}
+
+/*
+* Callback to run whenever a bluetooth disconnection occurs
+*/
+static void disconnected(struct bt_conn *conn, uint8_t reason)
+{
+    printk("disconnected\n");
+    ble_connected = false;
+}
+
+BT_CONN_CB_DEFINE(conn_callbacks) = {
+	.connected = connected,
+	.disconnected = disconnected
+};
 /******* /Bluetooth Code ********/
 
 
@@ -486,38 +512,29 @@ int main(void)
 
     configure_imu(settings);
 
-    // //confirm accelerometer sample rate value
-    // uint8_t accUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL1_XL);
-    // printk("updated acc control register: %d\n", accUpdatedConfigValue);
-
-    // //confirm gyro sample rate value
-    // uint8_t gyroUpdatedConfigValue = read_control_register(LSM6DS3_ACC_GYRO_CTRL2_G);
-    // printk("updated gyro control register: %d\n", gyroUpdatedConfigValue);
-
     int count = 0;
 
     while (true)
     {
-        struct IMUData imuData = pull_imu_data(settings);
-        // struct AcceloremeterData accData = imuData.aData;
-        // struct GyroData gyroData = imuData.gData;
-        
-        // if (count % 500 == 0)
-        // {
-        //     printk("%d: Acc - X: %f, Y: %f, Z: %f\n", count, accData.AccX, accData.AccY, accData.AccZ);
-        //     printk("%d: Gyro - X: %f, Y: %f, Z: %f\n", count, gyroData.GyroX, gyroData.GyroY, gyroData.GyroZ);
-        // }
-
-        printk("%d: Writing to bluetooth service\n", count);
-        err = notify_adc(imuData);
-        if (err)
+        if (ble_connected)
         {
-            printk("Writing failed (err %d)\n", err);
-            return 1;
-        }
-        count++;
+            struct IMUData imuData = pull_imu_data(settings);
 
-        k_msleep(SLEEP_TIME_MS);
+            printk("%d: Writing to bluetooth service\n", count);
+            err = notify_adc(imuData);
+            if (err)
+            {
+                printk("Writing failed (err %d)\n", err);
+                return 1;
+            }
+            count++;
+
+            k_msleep(CONNECTED_SLEEP_TIME_MS);
+        }
+        else
+        {
+            k_msleep(UNCONNECTED_SLEEP_TIME_MS);
+        }
     }
     return 0;
 }

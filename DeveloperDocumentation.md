@@ -11,6 +11,7 @@ TBD
 ### Database Conventions
 
 * snake_case for all table names, column names and migration names
+
 ### Database Migrations
 
 This project uses SQLite to save data coming from disc. The schema of this database is managed by the [DataSchemaService](./software/client/OpenDataDisc.Services/DataSchemaService.cs).
@@ -69,3 +70,14 @@ COMMIT;
   * And ensure rollback is successful
 * To test the "Migration Tracking Error Rollback" test case, change the statement so it fails:
   * `INSERTING INTO migrations (name, number) VALUES ('migration_table', 1);`
+
+### Icons
+
+The [Avalonia Docs](https://docs.avaloniaui.net/docs/tutorials/music-store-app/add-and-layout-controls#button-icon) detail how to add new icons to the Avalonia project.
+
+But simply:
+
+* Load the above url
+* Pick an icon
+* Copy the `StreamGeometry` tag into the `Icons.axaml`
+* Use the `x:Key` wherever is needed.

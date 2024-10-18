@@ -8,14 +8,6 @@
              x:Class="OpenDataDisc.UI.Views.SelectedDeviceView"
 			 Width="200">
 	<StackPanel Spacing="5" Width="200">
-		<!--<Border CornerRadius="10" ClipToBounds="True">
-			<Panel Background="#7FFF22DD">
-				<Image Width="200" Stretch="Uniform" Source="{Binding Cover}" />
-				<Panel Height="200" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
-					<PathIcon Height="75" Width="75" Data="{StaticResource music_regular}" />
-				</Panel>
-			</Panel>
-		</Border>-->
 		<TextBlock HorizontalAlignment="Center" Text="{Binding Name}"/>
 		<TextBlock HorizontalAlignment="Center" Text="{Binding IsPaired}"/>
 	</StackPanel>

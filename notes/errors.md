@@ -28,3 +28,9 @@ I wasn't referencing my converter properly. I fixed this by introducing a `Windo
 		<m:StateToVisibilityConverter x:Key="StateToVisibilityConverter" />
 	</Window.Resources>
 ```
+
+## Zephyr Bluetooth
+
+`C:/ncs/v2.7.0/nrf/include/bluetooth/scan.h:223:36: error: 'CONFIG_BT_SCAN_UUID_CNT' undeclared here (not in a function)`
+
+Couldn't fix this issue. Ended up removing the extra code I used for the connect/disconnect bluetooth callbacks.

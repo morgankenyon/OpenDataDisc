@@ -53,13 +53,18 @@ namespace OpenDataDisc.UI.ViewModels
             _cancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = _cancellationTokenSource.Token;
 
+            //for some reason these filters are not working as I expect
             var requestOptions = new RequestDeviceOptions();
-            requestOptions.Filters.Add(new BluetoothLEScanFilter
+            var openDataDiscFilter = new BluetoothLEScanFilter
             {
-                Name = "NRF52"
-            });
-            requestOptions.AcceptAllDevices = false;
-            var devices = await Bluetooth.ScanForDevicesAsync(cancellationToken: cancellationToken);
+                Name = "OpenDataDisc"
+            };
+            openDataDiscFilter.Services.Add(Constants.ServiceUuid);
+            requestOptions.Filters.Add(openDataDiscFilter);
+
+            var devices = await Bluetooth.ScanForDevicesAsync(
+                options: requestOptions,
+                cancellationToken: cancellationToken);
 
             foreach (var device in devices)
             {

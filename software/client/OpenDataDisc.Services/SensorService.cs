@@ -2,6 +2,7 @@
 using OpenDataDisc.Services.Models;
 using System;
 using System.Data.SQLite;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpenDataDisc.Services
@@ -10,7 +11,7 @@ namespace OpenDataDisc.Services
     {
         //put somewhere shareable
         private readonly string connectionString = "Data Source=opendatadisc.db;Version=3;New=True;Compress=True";
-        public async Task<int> MessagesReceivedInLastNSeconds(int lastNSeconds)
+        public async Task<int> MessagesReceivedInLastNSeconds(int lastNSeconds, CancellationToken token)
         {
             var date = DateTimeOffset.Now.AddSeconds(-1 * lastNSeconds).ToUnixTimeSeconds();
 
@@ -24,7 +25,7 @@ namespace OpenDataDisc.Services
 
                 command.Parameters.AddWithValue("date", date);
 
-                var result = await command.ExecuteScalarAsync();
+                var result = await command.ExecuteScalarAsync(token);
 
                 if (int.TryParse(result.ToString(), out var messages))
                 {
@@ -39,7 +40,7 @@ namespace OpenDataDisc.Services
             return -1;
         }
 
-        public async Task SaveSensorData(SensorData sensorData)
+        public async Task SaveSensorData(SensorData sensorData, CancellationToken token)
         {
             try
             {
@@ -57,7 +58,7 @@ namespace OpenDataDisc.Services
                 command.Parameters.AddWithValue("gyroY", sensorData.GyroY);
                 command.Parameters.AddWithValue("gyroZ", sensorData.GyroZ);
 
-                await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync(token);
             }
             catch (Exception ex)
             {

@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:views="using:OpenDataDisc.UI.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="OpenDataDisc.UI.Views.ConfirmationWindow"
+		Title="Confirm?"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+		Width="500" Height="350"
+        Background="Transparent"
+        WindowStartupLocation="CenterOwner">
+	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+		<TextBlock Text="Would you like to disconnect your bluetooth device?" Margin="10"/>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+			<Button Content="Yes" Click="OnYesClick" Margin="5"/>
+			<Button Content="No" Click="OnNoClick" Margin="5"/>
+		</StackPanel>
+	</StackPanel>
+</Window>
