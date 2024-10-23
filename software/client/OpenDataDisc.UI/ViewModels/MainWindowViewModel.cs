@@ -265,7 +265,7 @@ public class MainWindowViewModel : ViewModelBase
 
                     var properties = chars.Properties;
 
-                    byte[] configureMessage = Encoding.UTF8.GetBytes("configure\n");
+                    byte[] configureMessage = Encoding.UTF8.GetBytes("configure");
                     try
                     {
 

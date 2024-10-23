@@ -176,7 +176,7 @@ static ssize_t on_write(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 {
     char received_data[100];  // Adjust size based on your expected data length
 
-    printk("In on_write");
+    printk("In on_write\n");
     // Ensure the length does not exceed buffer size
     if (len >= sizeof(received_data)) {
         printk("Error: Data too long to fit into buffer\n");
@@ -198,7 +198,7 @@ BT_GATT_SERVICE_DEFINE(custom_srv,
 	BT_GATT_PRIMARY_SERVICE(ODD_SERVICE),
 	BT_GATT_CHARACTERISTIC(ODD_SENSOR_CHRC, 
         BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_WRITE | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
-        BT_GATT_PERM_NONE,
+        BT_GATT_PERM_WRITE,
         NULL,
         on_write,
         NULL),

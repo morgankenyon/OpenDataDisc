@@ -37,6 +37,9 @@ Couldn't fix this issue. Ended up removing the extra code I used for the connect
 
 ## Issue Writing Message to Server
 
+In trying to get configuration to work. It's something the client needs to inform the server that is wants to do. I wanted to Write a message to the Server.
+
+When I tried I got the following error:
 ```
    at InTheHand.Bluetooth.GattCharacteristic.<PlatformWriteValue>d__36.MoveNext()
    at OpenDataDisc.UI.ViewModels.MainWindowViewModel.<ListenToDevice>d__45.MoveNext() in C:\dev\OpenDataDisc\software\client\OpenDataDisc.UI\ViewModels\MainWindowViewModel.cs:line 267
@@ -72,7 +75,24 @@ catch (System.Runtime.InteropServices.COMException comException)
 }
 ```
 
-The ComException has the following error code:80650003
+The ComException has an empty error message the following error code:`0x80650003`
 
 Stackoverflow with same error code: https://stackoverflow.com/questions/38804878/uwp-system-runtime-interop-comexception-on-debug-but-system-exception-on-release
 Something to try: https://stackoverflow.com/questions/48973287/failed-to-subscribe-to-notification-characteristic-in-bluetooth-low-energy
+
+It ended up being a permissions issue. I was configuring bluetooth in zephyr as such:
+
+```c
+BT_GATT_SERVICE_DEFINE(custom_srv,
+	BT_GATT_PRIMARY_SERVICE(ODD_SERVICE),
+	BT_GATT_CHARACTERISTIC(ODD_SENSOR_CHRC, 
+        BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_WRITE | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
+        BT_GATT_PERM_NONE,       //this right here
+        NULL,
+        on_write,
+        NULL),
+	BT_GATT_CCC(NULL, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+);
+```
+
+I changed "BT_GATT_PERM_NONE" => "BT_GATT_PERM_WRITE" and my server was able to receive the message from the client.
