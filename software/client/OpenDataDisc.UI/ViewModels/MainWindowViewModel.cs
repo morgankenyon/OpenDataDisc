@@ -8,6 +8,9 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -251,7 +254,7 @@ public class MainWindowViewModel : ViewModelBase
 
             if (service != null)
             {
-                var chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
+                GattCharacteristic chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
                 if (chars != null)
                 {
                     chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
@@ -259,6 +262,20 @@ public class MainWindowViewModel : ViewModelBase
 
                     SelectedDevice = selectedDevice;
                     CurrentState = MainWindowState.Connected;
+
+                    var properties = chars.Properties;
+
+                    byte[] configureMessage = Encoding.UTF8.GetBytes("configure\n");
+                    try
+                    {
+
+                        await chars.WriteValueWithResponseAsync(configureMessage);
+                    }
+                    catch (System.Runtime.InteropServices.COMException comException)
+                    {
+                        //var exception = JsonSerializer.Serialize(comException);
+                        configureMessage = Encoding.ASCII.GetBytes("hello");
+                    }
 
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
