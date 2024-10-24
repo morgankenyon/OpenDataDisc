@@ -9,6 +9,7 @@ namespace OpenDataDisc.Services
         {
             services.AddTransient<IDataSchemaService, DataSchemaService>();
             services.AddTransient<ISensorService, SensorService>();
+            services.AddTransient<IConfigurationService, ConfigurationService>();
             return services;
         }
     }

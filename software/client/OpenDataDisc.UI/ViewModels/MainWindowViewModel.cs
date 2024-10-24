@@ -30,6 +30,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     //di references
     private readonly ISensorService _sensorService;
+    private readonly IConfigurationService _configurationService;
 
     //ui accessed variables
     private SelectedDeviceViewModel? _selectedDevice;
@@ -78,7 +79,8 @@ public class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _deviceConnectedTokenSource;
     private CancellationTokenSource? _messageRateTokenSource;
     
-    public MainWindowViewModel(ISensorService sensorService)
+    public MainWindowViewModel(ISensorService sensorService,
+        IConfigurationService configurationService)
     {
         CurrentState = MainWindowState.Unconnected;
 
@@ -115,6 +117,7 @@ public class MainWindowViewModel : ViewModelBase
         });
 
         _sensorService = sensorService;
+        _configurationService = configurationService;
 
         this.WhenAnyValue(x => x.MessageCount)
             .Subscribe(_ => {
@@ -127,6 +130,9 @@ public class MainWindowViewModel : ViewModelBase
 
         this.WhenAnyValue(x => x.CurrentState)
             .Subscribe(_ => ControlMessageRateCalculation());
+
+        this.WhenAnyValue(x => x.SelectedDevice)
+            .Subscribe(_ => CheckForConfiguration());
     }
 
     private void ControlMessageRateCalculation()
@@ -143,6 +149,23 @@ public class MainWindowViewModel : ViewModelBase
             case MainWindowState.Connecting:
                 _messageRateTokenSource?.Cancel();
                 break;
+        }
+    }
+
+    private async void CheckForConfiguration()
+    {
+        if (SelectedDevice != null)
+        {
+            var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id);
+
+            if (deviceConfiguration != null)
+            {
+                Messages.Add("Has configuration");
+            }
+            else
+            {
+                Messages.Add("Does not have configuration");
+            }
         }
     }
 
