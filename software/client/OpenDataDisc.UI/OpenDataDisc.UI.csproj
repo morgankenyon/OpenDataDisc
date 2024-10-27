@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\ConfigurationWindow.axaml.cs">
+      <SubType>Code</SubType>
+      <DependentUpon>ConfigurationWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\ConfirmationWindow.axaml.cs">
       <DependentUpon>ConfirmationWindow.axaml</DependentUpon>
     </Compile>
@@ -39,5 +43,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpenDataDisc.Services\OpenDataDisc.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Update="Views\ConfigurationWindow.axaml">
+      <SubType>Designer</SubType>
+    </AvaloniaXaml>
   </ItemGroup>
 </Project>

@@ -10,6 +10,12 @@ namespace OpenDataDisc.Services
     {
         //put somewhere shareable
         private readonly string connectionString = "Data Source=opendatadisc.db;Version=3;New=True;Compress=True";
+
+        public Task<bool> SaveDeviceConfiguration(DiscConfigurationData data)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<DiscConfigurationData?> SearchForDeviceConfiguration(string deviceId)
         {
             try

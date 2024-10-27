@@ -69,6 +69,7 @@ public class MainWindowViewModel : ViewModelBase
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
     public Interaction<ConfirmationWindowViewModel, ConfirmationResult> ShowConfirmationDialog { get; }
+    public Interaction<ConfigurationWindowViewModel, DiscConfigurationData> ConfigureDeviceDialog { get; }
 
     //command for propagating selected device
     public ICommand SelectBluetoothDeviceCommand { get; }
@@ -86,6 +87,7 @@ public class MainWindowViewModel : ViewModelBase
 
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
         ShowConfirmationDialog = new Interaction<ConfirmationWindowViewModel, ConfirmationResult>();
+        ConfigureDeviceDialog = new Interaction<ConfigurationWindowViewModel, DiscConfigurationData>();
 
         SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -297,9 +299,20 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (_selectedDevice != null)
         {
+            //check for configuration
             var hasConfiguration = await DoesDeviceHaveConfiguration(_selectedDevice.Device.Id);
 
+            //if no configuration, open window for configuration
+            if (!hasConfiguration)
+            {
+                var message = new ConfigurationWindowViewModel();
+                var result = await ConfigureDeviceDialog.Handle(message);
 
+                await _configurationService.SaveDeviceConfiguration(result);
+                //
+                //var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
+                //var result = await ShowConfirmationDialog.Handle(message);
+            }
         }
     }
     private async Task<bool> DoesDeviceHaveConfiguration(string deviceId)

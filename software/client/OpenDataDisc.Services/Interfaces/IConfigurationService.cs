@@ -6,5 +6,6 @@ namespace OpenDataDisc.Services.Interfaces
     public interface IConfigurationService
     {
         Task<DiscConfigurationData?> SearchForDeviceConfiguration(string deviceId);
+        Task<bool> SaveDeviceConfiguration(DiscConfigurationData data);
     }
 }
