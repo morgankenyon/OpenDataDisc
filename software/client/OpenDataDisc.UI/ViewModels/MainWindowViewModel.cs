@@ -131,8 +131,8 @@ public class MainWindowViewModel : ViewModelBase
         this.WhenAnyValue(x => x.CurrentState)
             .Subscribe(_ => ControlMessageRateCalculation());
 
-        this.WhenAnyValue(x => x.SelectedDevice)
-            .Subscribe(_ => CheckForConfiguration());
+        //this.WhenAnyValue(x => x.SelectedDevice)
+        //    .Subscribe(_ => CheckForConfiguration());
     }
 
     private void ControlMessageRateCalculation()
@@ -149,23 +149,6 @@ public class MainWindowViewModel : ViewModelBase
             case MainWindowState.Connecting:
                 _messageRateTokenSource?.Cancel();
                 break;
-        }
-    }
-
-    private async void CheckForConfiguration()
-    {
-        if (SelectedDevice != null)
-        {
-            var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id);
-
-            if (deviceConfiguration != null)
-            {
-                Messages.Add("Has configuration");
-            }
-            else
-            {
-                Messages.Add("Does not have configuration");
-            }
         }
     }
 
@@ -280,6 +263,10 @@ public class MainWindowViewModel : ViewModelBase
                 GattCharacteristic chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
                 if (chars != null)
                 {
+                    //ensure sensor configuration
+                    await HandleConfiguration();
+
+                    //subscribe to messages
                     chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
                     await chars.StartNotificationsAsync();
 
@@ -287,18 +274,6 @@ public class MainWindowViewModel : ViewModelBase
                     CurrentState = MainWindowState.Connected;
 
                     var properties = chars.Properties;
-
-                    byte[] configureMessage = Encoding.UTF8.GetBytes("configure");
-                    try
-                    {
-
-                        await chars.WriteValueWithResponseAsync(configureMessage);
-                    }
-                    catch (System.Runtime.InteropServices.COMException comException)
-                    {
-                        //var exception = JsonSerializer.Serialize(comException);
-                        configureMessage = Encoding.ASCII.GetBytes("hello");
-                    }
 
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -317,4 +292,45 @@ public class MainWindowViewModel : ViewModelBase
 
         CurrentState = MainWindowState.Unconnected;
     }
+
+    private async Task HandleConfiguration()
+    {
+        if (_selectedDevice != null)
+        {
+            var hasConfiguration = await DoesDeviceHaveConfiguration(_selectedDevice.Device.Id);
+
+
+        }
+    }
+    private async Task<bool> DoesDeviceHaveConfiguration(string deviceId)
+    {
+        if (_selectedDevice != null)
+        {
+            var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id);
+
+            if (deviceConfiguration != null)
+            {
+                Messages.Add("Has configuration");
+                return true;
+            }
+            else
+            {
+                Messages.Add("Does not have configuration");
+                return false;
+            }
+        }
+        return false;
+    }
+
+    //byte[] configureMessage = Encoding.UTF8.GetBytes("configure");
+    //try
+    //{
+
+    //    await chars.WriteValueWithResponseAsync(configureMessage);
+    //}
+    //catch (System.Runtime.InteropServices.COMException comException)
+    //{
+    //    //var exception = JsonSerializer.Serialize(comException);
+    //    configureMessage = Encoding.ASCII.GetBytes("hello");
+    //}
 }
