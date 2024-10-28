@@ -14,10 +14,11 @@
         Background="Transparent"
         WindowStartupLocation="CenterOwner">
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-		<TextBlock Text="Let's configure your OpenDataDisc. Please click Next when ready." Margin="10"/>
-		<TextBlock Text="{Binding MessageCount}" Margin="10"/>
-		<TextBlock Text="{Binding DataString}" Margin="10"/>
+		<TextBlock Text="{Binding ConfigurationInstructionsText}" Margin="10"/>
+		<!--<TextBlock Text="{Binding MessageCount}" Margin="10"/>
+		<TextBlock Text="{Binding DataString}" Margin="10"/>-->
 		<TextBlock Text="{Binding StepText}" Margin="10"/>
+		<TextBlock Text="{Binding ConfiguringValueText}" Margin="10"/>
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 			<!--<Button Content="Yes" Click="OnYesClick" Margin="5"/>
 			<Button Content="No" Click="OnNoClick" Margin="5"/>-->
