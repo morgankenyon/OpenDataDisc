@@ -32,4 +32,14 @@ public partial class ConfigurationWindow : ReactiveWindow<ConfigurationWindowVie
             29.2,
             29.2));
     }
+
+    private void NextStep(object sender, RoutedEventArgs e)
+    {
+        var viewModel = this.DataContext as ConfigurationWindowViewModel;
+
+        if (viewModel != null)
+        {
+            viewModel.AdvanceToNextStep();
+        }
+    }
 }

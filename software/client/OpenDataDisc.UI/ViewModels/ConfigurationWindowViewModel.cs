@@ -7,7 +7,11 @@ namespace OpenDataDisc.UI.ViewModels
 {
     public class ConfigurationWindowViewModel : ViewModelBase
     {
-        public ConfigurationWindowViewModel() { }
+        public ConfigurationWindowViewModel()
+        {
+            this.WhenAnyValue(x => x.Step)
+                .Subscribe(_ => this.RaisePropertyChanged(nameof(StepText)));
+        }
 
         private int _messageCount;
         public int MessageCount
@@ -23,12 +27,21 @@ namespace OpenDataDisc.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _dataString, value);
         }
 
-        private ConfigurationStep _step;
+        private float _configuringValue;
+        public float ConfiguringValue
+        {
+            get => _configuringValue;
+            set => this.RaiseAndSetIfChanged(ref _configuringValue, value);
+        }
+
+        private ConfigurationStep _step = ConfigurationStep.Start;
         public ConfigurationStep Step
         {
             get => _step;
             set => this.RaiseAndSetIfChanged(ref _step, value);
         }
+
+        public string StepText => $"Config Step: {_step}";
 
         public void HandleMessage(object? sender, GattCharacteristicValueChangedEventArgs e)
         {
@@ -45,6 +58,11 @@ namespace OpenDataDisc.UI.ViewModels
                 Console.WriteLine(errorMessage);
             }
         }
+
+        public void AdvanceToNextStep()
+        {
+            Step = (ConfigurationStep)((int)Step + 1);
+        }
     }
 
     public enum ConfigurationStep
@@ -58,5 +76,6 @@ namespace OpenDataDisc.UI.ViewModels
         AccZRecording,
         GyroSetup,
         GyroRecording,
+        Finished
     }
 }

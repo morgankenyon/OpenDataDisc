@@ -14,12 +14,14 @@
         Background="Transparent"
         WindowStartupLocation="CenterOwner">
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-		<TextBlock Text="Would you like to disconnect your bluetooth device?" Margin="10"/>
+		<TextBlock Text="Let's configure your OpenDataDisc. Please click Next when ready." Margin="10"/>
 		<TextBlock Text="{Binding MessageCount}" Margin="10"/>
 		<TextBlock Text="{Binding DataString}" Margin="10"/>
+		<TextBlock Text="{Binding StepText}" Margin="10"/>
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-			<Button Content="Yes" Click="OnYesClick" Margin="5"/>
-			<Button Content="No" Click="OnNoClick" Margin="5"/>
+			<!--<Button Content="Yes" Click="OnYesClick" Margin="5"/>
+			<Button Content="No" Click="OnNoClick" Margin="5"/>-->
+			<Button Content="Next" Click="NextStep" Margin="5"/>
 		</StackPanel>
 	</StackPanel>
 </Window>
