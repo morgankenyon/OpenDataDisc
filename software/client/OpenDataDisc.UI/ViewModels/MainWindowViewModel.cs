@@ -69,7 +69,7 @@ public class MainWindowViewModel : ViewModelBase
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
     public Interaction<ConfirmationWindowViewModel, ConfirmationResult> ShowConfirmationDialog { get; }
-    public Interaction<ConfigurationWindowViewModel, DiscConfigurationData> ConfigureDeviceDialog { get; }
+    public Interaction<ConfigurationWindowViewModel, DiscConfigurationData> ShowConfigurationDialog { get; }
 
     //command for propagating selected device
     public ICommand SelectBluetoothDeviceCommand { get; }
@@ -87,7 +87,7 @@ public class MainWindowViewModel : ViewModelBase
 
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
         ShowConfirmationDialog = new Interaction<ConfirmationWindowViewModel, ConfirmationResult>();
-        ConfigureDeviceDialog = new Interaction<ConfigurationWindowViewModel, DiscConfigurationData>();
+        ShowConfigurationDialog = new Interaction<ConfigurationWindowViewModel, DiscConfigurationData>();
 
         SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -265,15 +265,16 @@ public class MainWindowViewModel : ViewModelBase
                 GattCharacteristic chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
                 if (chars != null)
                 {
+                    SelectedDevice = selectedDevice;
+                    CurrentState = MainWindowState.Connected;
+                    await chars.StartNotificationsAsync();
+
                     //ensure sensor configuration
-                    await HandleConfiguration();
+                    await HandleConfiguration(chars);
+
 
                     //subscribe to messages
                     chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
-                    await chars.StartNotificationsAsync();
-
-                    SelectedDevice = selectedDevice;
-                    CurrentState = MainWindowState.Connected;
 
                     var properties = chars.Properties;
 
@@ -295,7 +296,7 @@ public class MainWindowViewModel : ViewModelBase
         CurrentState = MainWindowState.Unconnected;
     }
 
-    private async Task HandleConfiguration()
+    private async Task HandleConfiguration(GattCharacteristic chars)
     {
         if (_selectedDevice != null)
         {
@@ -306,12 +307,14 @@ public class MainWindowViewModel : ViewModelBase
             if (!hasConfiguration)
             {
                 var message = new ConfigurationWindowViewModel();
-                var result = await ConfigureDeviceDialog.Handle(message);
+                chars.CharacteristicValueChanged += message.HandleMessage;
+                var result = await ShowConfigurationDialog.Handle(message);
 
                 await _configurationService.SaveDeviceConfiguration(result);
                 //
                 //var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
                 //var result = await ShowConfirmationDialog.Handle(message);
+                chars.CharacteristicValueChanged -= message.HandleMessage;
             }
         }
     }

@@ -1,7 +1,8 @@
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
-using OpenDataDisc.UI.Models;
+using OpenDataDisc.Services.Models;
 using OpenDataDisc.UI.ViewModels;
+using System;
 
 namespace OpenDataDisc.UI.Views;
 
@@ -14,11 +15,21 @@ public partial class ConfigurationWindow : ReactiveWindow<ConfigurationWindowVie
 
     private void OnYesClick(object sender, RoutedEventArgs e)
     {
-        this.Close(ConfirmationResult.Yes);
+        this.Close(new DiscConfigurationData(
+            "",
+            DateTime.Now.Ticks,
+            23.2,
+            29.2,
+            29.2));
     }
 
     private void OnNoClick(object sender, RoutedEventArgs e)
     {
-        this.Close(ConfirmationResult.No);
+        this.Close(new DiscConfigurationData(
+            "",
+            DateTime.Now.Ticks,
+            23.2,
+            29.2,
+            29.2));
     }
 }

@@ -36,9 +36,6 @@
 				<Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Command="{Binding SelectBluetoothDeviceCommand}">
 					<PathIcon Data="{StaticResource options_regular}" />
 				</Button>
-				<Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Command="{Binding SelectBluetoothDeviceCommand}">
-					<PathIcon Data="{StaticResource bluetooth_regular}" />
-				</Button>
 			</StackPanel>
 		</Border>
 

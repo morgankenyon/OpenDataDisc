@@ -13,7 +13,7 @@ namespace OpenDataDisc.Services
 
         public Task<bool> SaveDeviceConfiguration(DiscConfigurationData data)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public async Task<DiscConfigurationData?> SearchForDeviceConfiguration(string deviceId)
