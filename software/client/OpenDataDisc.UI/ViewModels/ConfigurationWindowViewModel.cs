@@ -14,9 +14,29 @@ namespace OpenDataDisc.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _messageCount, value);
         }
 
+        private ConfigurationStep _step;
+        public ConfigurationStep Step
+        {
+            get => _step;
+            set => this.RaiseAndSetIfChanged(ref _step, value);
+        }
+
         public void HandleMessage(object? sender, GattCharacteristicValueChangedEventArgs e)
         {
             MessageCount++;
         }
+    }
+
+    public enum ConfigurationStep
+    {
+        Start,
+        AccXSetup,
+        AccXRecording,
+        AccYSetup,
+        AccYRecording,
+        AccZSetup,
+        AccZRecording,
+        GyroSetup,
+        GyroRecording,
     }
 }

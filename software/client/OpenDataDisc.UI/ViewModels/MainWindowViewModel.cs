@@ -198,29 +198,17 @@ public class MainWindowViewModel : ViewModelBase
     {
         EventHandler<GattCharacteristicValueChangedEventArgs> privateMethod = (object? sender, GattCharacteristicValueChangedEventArgs e) =>
         {
-            if (e.Value != null)
+            var (data, errorMessage) = e.ExtractSensorData();
+            if (data != null)
             {
-                var strR = System.Text.Encoding.Default.GetString(e.Value);
-                var strReceived = strR.Split("\0")[0];
-
-                if (!string.IsNullOrWhiteSpace(strReceived))
-                {
-                    //messages.Add(strReceived);
-                    updateCount();
-                    SensorChannel.Writer.TryWrite(new SensorData(strReceived));
-                }
-                else
-                {
-                    Console.WriteLine($"Received - {e.Value} - {strReceived}");
-                }
-            }
-            else if (e.Error != null)
-            {
-                Console.WriteLine($"Received Error - {e.Error.Message}");
+                updateCount();
+                SensorChannel.Writer.TryWrite(data);
+                //messages.Add(data.ToString() ?? "");
             }
             else
             {
-                Console.WriteLine("Received message");
+                //TODO: log this somewhere more useful
+                Console.WriteLine(errorMessage);
             }
         };
 
