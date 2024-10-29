@@ -101,7 +101,7 @@ namespace OpenDataDisc.Services
                         migrationText = @"
     BEGIN TRANSACTION;
 
-    CREATE Table disc_configuration (deviceId TEXT PRIMARY KEY, date INTEGER, accXOffset FLOAT, accYOffset FLOAT, accZOffset FLOAT);
+    CREATE Table disc_configuration (deviceId TEXT PRIMARY KEY, date INTEGER, accXOffset FLOAT, accYOffset FLOAT, accZOffset FLOAT, gyroXOffset FLOAT, gyroYOffset FLOAT, gyroZOffset FLOAT);
 
     INSERT INTO migrations (name, number) VALUES ('disc_configuration_table', 3);
 

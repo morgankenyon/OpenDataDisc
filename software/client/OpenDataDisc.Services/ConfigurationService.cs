@@ -24,7 +24,7 @@ namespace OpenDataDisc.Services
 
                 sqlConn.Open();
 
-                var command = new SQLiteCommand("SELECT deviceId, date, accXOffset, accYOffset, accZOffset FROM disc_configuration WHERE deviceId = ?", sqlConn);
+                var command = new SQLiteCommand("SELECT deviceId, date, accXOffset, accYOffset, accZOffset, gyroXOffset, gyroYOffset, gyroZOffset FROM disc_configuration WHERE deviceId = ?", sqlConn);
 
                 command.Parameters.AddWithValue("deviceId", deviceId);
 
@@ -42,8 +42,19 @@ namespace OpenDataDisc.Services
                 var accXOffset = reader.GetDouble(2);
                 var accYOffset = reader.GetDouble(3);
                 var accZOffset = reader.GetDouble(4);
+                var gyroXOffset = reader.GetDouble(5);
+                var gyroYOffset = reader.GetDouble(6);
+                var gyroZOffset = reader.GetDouble(7);
 
-                return new DiscConfigurationData(dId, date, accXOffset, accYOffset, accZOffset);
+                return new DiscConfigurationData(
+                    dId,
+                    date,
+                    accXOffset,
+                    accYOffset,
+                    accZOffset,
+                    gyroXOffset,
+                    gyroYOffset,
+                    gyroZOffset);
             }
             catch (Exception ex)
             {

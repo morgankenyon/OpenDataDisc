@@ -13,26 +13,6 @@ public partial class ConfigurationWindow : ReactiveWindow<ConfigurationWindowVie
         InitializeComponent();
     }
 
-    private void OnYesClick(object sender, RoutedEventArgs e)
-    {
-        this.Close(new DiscConfigurationData(
-            "",
-            DateTime.Now.Ticks,
-            23.2,
-            29.2,
-            29.2));
-    }
-
-    private void OnNoClick(object sender, RoutedEventArgs e)
-    {
-        this.Close(new DiscConfigurationData(
-            "",
-            DateTime.Now.Ticks,
-            23.2,
-            29.2,
-            29.2));
-    }
-
     private void NextStep(object sender, RoutedEventArgs e)
     {
         var viewModel = this.DataContext as ConfigurationWindowViewModel;
@@ -40,6 +20,16 @@ public partial class ConfigurationWindow : ReactiveWindow<ConfigurationWindowVie
         if (viewModel != null)
         {
             viewModel.AdvanceToNextStep();
+        }
+    }
+
+    private void CloseModal(object sender, RoutedEventArgs e)
+    {
+        var viewModel = this.DataContext as ConfigurationWindowViewModel;
+
+        if (viewModel != null)
+        {
+            this.Close(viewModel.DiscConfiguration);
         }
     }
 }

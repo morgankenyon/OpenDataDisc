@@ -298,7 +298,10 @@ public class MainWindowViewModel : ViewModelBase
                 chars.CharacteristicValueChanged += message.HandleMessage;
                 var result = await ShowConfigurationDialog.Handle(message);
 
-                await _configurationService.SaveDeviceConfiguration(result);
+                if (result != null)
+                {
+                    await _configurationService.SaveDeviceConfiguration(result);
+                }
                 //
                 //var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
                 //var result = await ShowConfirmationDialog.Handle(message);
