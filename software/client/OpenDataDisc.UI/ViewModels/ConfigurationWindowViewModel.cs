@@ -31,18 +31,6 @@ namespace OpenDataDisc.UI.ViewModels
                 });
             this.WhenAnyValue(x => x.ConfiguringValue)
                 .Subscribe(_ => this.RaisePropertyChanged(nameof(ConfiguringValueText)));
-            this.WhenAnyValue(x => x.AccXValue)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(SensorValueText)));
-            this.WhenAnyValue(x => x.AccYValue)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(SensorValueText)));
-            this.WhenAnyValue(x => x.AccZValue)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(SensorValueText)));
-            this.WhenAnyValue(x => x.GyroXValue)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(SensorValueText)));
-            this.WhenAnyValue(x => x.GyroYValue)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(SensorValueText)));
-            this.WhenAnyValue(x => x.GyroZValue)
-                .Subscribe(_ => this.RaisePropertyChanged(nameof(SensorValueText)));
         }
 
         private int _messageCount;
@@ -67,46 +55,11 @@ namespace OpenDataDisc.UI.ViewModels
         }
 
         private double _accXValue;
-        public double AccXValue
-        {
-            get => _accXValue;
-            set => this.RaiseAndSetIfChanged(ref _accXValue, value);
-        }
-
         private double _accYValue;
-        public double AccYValue
-        {
-            get => _accYValue;
-            set => this.RaiseAndSetIfChanged(ref _accYValue, value);
-        }
-
         private double _accZValue;
-        public double AccZValue
-        {
-            get => _accZValue;
-            set => this.RaiseAndSetIfChanged(ref _accZValue, value);
-        }
-
         private double _gyroXValue;
-        public double GyroXValue
-        {
-            get => _gyroXValue;
-            set => this.RaiseAndSetIfChanged(ref _gyroXValue, value);
-        }
-
         private double _gyroYValue;
-        public double GyroYValue
-        {
-            get => _gyroYValue;
-            set => this.RaiseAndSetIfChanged(ref _gyroYValue, value);
-        }
-
         private double _gyroZValue;
-        public double GyroZValue
-        {
-            get => _gyroZValue;
-            set => this.RaiseAndSetIfChanged(ref _gyroZValue, value);
-        }
 
         private ConfigurationStep _step = ConfigurationStep.Start;
         public ConfigurationStep Step
@@ -131,7 +84,6 @@ namespace OpenDataDisc.UI.ViewModels
             ConfigurationStep.Finished => "All finished, you can click closed to start throwing!",
             _ => "Unknown, please reconnect your bluetooth device"
         };
-        public string SensorValueText => $"{Math.Round(AccXValue, 3)}, {Math.Round(AccYValue, 3)}, {Math.Round(AccZValue, 3)}, {Math.Round(GyroXValue, 3)}, {Math.Round(GyroYValue, 3)}, {Math.Round(GyroZValue, 3)}";
 
         public bool ShowNext => Step != ConfigurationStep.Finished;
         public bool IsNextButtonEnabled => Step == ConfigurationStep.Start
@@ -225,32 +177,32 @@ namespace OpenDataDisc.UI.ViewModels
             switch (Step)
             {
                 case ConfigurationStep.AccYSetup:
-                    AccXValue = accMeasurements.DefaultIfEmpty(0).Average(x => x);
+                    _accXValue = accMeasurements.DefaultIfEmpty(0).Average(x => x);
                     accMeasurements.Clear();
                     break;
                 case ConfigurationStep.AccZSetup:
-                    AccYValue = accMeasurements.DefaultIfEmpty(0).Average(x => x);
+                    _accYValue = accMeasurements.DefaultIfEmpty(0).Average(x => x);
                     accMeasurements.Clear();
                     break;
                 case ConfigurationStep.GyroSetup:
-                    AccZValue = accMeasurements.DefaultIfEmpty(0).Average(x => x);
+                    _accZValue = accMeasurements.DefaultIfEmpty(0).Average(x => x);
                     accMeasurements.Clear();
                     break;
                 case ConfigurationStep.Finished:
                     //TODO: maybe move this into one linq statement
-                    GyroXValue = gyroMeasurements.Average(x => x.Item1);
-                    GyroYValue = gyroMeasurements.Average(x => x.Item2);
-                    GyroZValue = gyroMeasurements.Average(x => x.Item3);
+                    _gyroXValue = gyroMeasurements.Average(x => x.Item1);
+                    _gyroYValue = gyroMeasurements.Average(x => x.Item2);
+                    _gyroZValue = gyroMeasurements.Average(x => x.Item3);
                     gyroMeasurements.Clear();
                     DiscConfiguration = new DiscConfigurationData(
                         deviceId,
                         DateTime.UtcNow.Ticks,
-                        AccXValue,
-                        AccYValue,
-                        AccZValue,
-                        GyroXValue,
-                        GyroYValue,
-                        GyroZValue);
+                        _accXValue,
+                        _accYValue,
+                        _accZValue,
+                        _gyroXValue,
+                        _gyroYValue,
+                        _gyroZValue);
                     break;
             }
         }
