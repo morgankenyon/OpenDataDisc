@@ -323,16 +323,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id, token);
 
-            if (deviceConfiguration != null)
-            {
-                Messages.Add("Has configuration");
-                return true;
-            }
-            else
-            {
-                Messages.Add("Does not have configuration");
-                return false;
-            }
+            return deviceConfiguration != null;
         }
         return false;
     }

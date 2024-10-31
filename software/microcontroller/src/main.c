@@ -14,8 +14,9 @@
 #include <zephyr/bluetooth/uuid.h>
 
 //General Macros and variables
-#define CONNECTED_SLEEP_TIME_MS           50
-#define UNCONNECTED_SLEEP_TIME_MS         4000
+#define THROW_SLEEP_TIME_MS                 100
+#define CONFIG_SLEEP_TIME_MS                10
+#define UNCONNECTED_SLEEP_TIME_MS           4000
 #define I2C_NODE        DT_NODELABEL(arduino_i2c)
 static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 
@@ -122,7 +123,7 @@ typedef enum GyroFullScale {
 
 typedef enum OperationMode {
     THROW           = 0x00,
-    CONFIGURE       = 0x02
+    CONFIG          = 0x02
 } OperationMode;
 
 typedef struct IMUSettings
@@ -156,7 +157,7 @@ typedef struct IMUData
     uint32_t cycleCount;
 } IMUData;
 
-enum OperationMode operationMode;
+enum OperationMode operation_mode;
 
 
 /************* Bluetooth Info **************/
@@ -189,6 +190,14 @@ static ssize_t on_write(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 
     // Print or process the received string
     printk("Received data as string: %s\n", received_data);
+
+    if (strcmp(received_data, "throw") == 0) {
+        operation_mode = THROW;
+    } else if (strcmp(received_data, "config") == 0) {
+        operation_mode = CONFIG;
+    } else {
+        printk("Received unknown command\n");
+    }
 
     // Return the number of bytes written
     return len;
@@ -326,6 +335,7 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 {
     printk("connected\n");
     ble_connected = true;
+    operation_mode = THROW;
 }
 
 /*
@@ -531,7 +541,7 @@ int main(void)
     }
     printk("BLE stack ready\n");
 
-    operationMode = THROW;
+    operation_mode = THROW;
 
     int err;
     err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
@@ -557,18 +567,36 @@ int main(void)
     {
         if (ble_connected)
         {
-            struct IMUData imuData = pull_imu_data(settings);
-
-            //printk("%d: Writing to bluetooth service\n", count);
-            err = notify_adc(imuData);
-            if (err)
+            if (operation_mode == THROW)
             {
-                printk("Writing failed (err %d)\n", err);
-                return 1;
-            }
-            count++;
+                struct IMUData imuData = pull_imu_data(settings);
 
-            k_msleep(CONNECTED_SLEEP_TIME_MS);
+                //printk("%d: Writing to bluetooth service\n", count);
+                err = notify_adc(imuData);
+                if (err)
+                {
+                    printk("Writing failed (err %d)\n", err);
+                    return 1;
+                }
+                count++;
+
+                k_msleep(THROW_SLEEP_TIME_MS);
+            }
+            else if (operation_mode == CONFIG)
+            {
+                struct IMUData imuData = pull_imu_data(settings);
+
+                //printk("%d: Writing to bluetooth service\n", count);
+                err = notify_adc(imuData);
+                if (err)
+                {
+                    printk("Writing failed (err %d)\n", err);
+                    return 1;
+                }
+                count++;
+
+                k_msleep(CONFIG_SLEEP_TIME_MS);
+            }
         }
         else
         {

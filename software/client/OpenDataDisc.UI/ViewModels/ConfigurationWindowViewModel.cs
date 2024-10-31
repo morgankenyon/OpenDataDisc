@@ -11,7 +11,8 @@ namespace OpenDataDisc.UI.ViewModels
     public class ConfigurationWindowViewModel : ViewModelBase
     {
         private readonly string deviceId;
-        private int measurementsCount = 200;
+        private int configValueTrackingCount = 0;
+        private int measurementCountThreshold = 500;
         private List<double> accMeasurements = new List<double>();
         private List<(double, double, double)> gyroMeasurements = new List<(double, double, double)>();
 
@@ -26,6 +27,7 @@ namespace OpenDataDisc.UI.ViewModels
                     this.RaisePropertyChanged(nameof(ShowNext));
                     this.RaisePropertyChanged(nameof(ShowClose));
                     this.RaisePropertyChanged(nameof(IsNextButtonEnabled));
+                    this.RaisePropertyChanged(nameof(ShouldShowConfiguringValue));
                 });
             this.WhenAnyValue(x => x.ConfiguringValue)
                 .Subscribe(_ => this.RaisePropertyChanged(nameof(ConfiguringValueText)));
@@ -137,6 +139,10 @@ namespace OpenDataDisc.UI.ViewModels
             || Step == ConfigurationStep.AccYSetup
             || Step == ConfigurationStep.AccZSetup
             || Step == ConfigurationStep.GyroSetup;
+        public bool ShouldShowConfiguringValue => Step == ConfigurationStep.AccXSetup
+            || Step == ConfigurationStep.AccYSetup
+            || Step == ConfigurationStep.AccZSetup;
+
         public bool ShowClose => Step == ConfigurationStep.Finished;
 
         public DiscConfigurationData? DiscConfiguration;
@@ -158,12 +164,21 @@ namespace OpenDataDisc.UI.ViewModels
             }
         }
 
+        private void UpdateAccConfiguringValue(float data)
+        {
+            configValueTrackingCount++;
+            if (configValueTrackingCount % 20 == 0)
+            {
+                ConfiguringValue = data;
+            }
+        }
+
         private void ConfirmConfiguringValue(SensorData data)
         {
             switch (Step)
             {
                 case ConfigurationStep.AccXSetup:
-                    ConfiguringValue = data.AccX;
+                    UpdateAccConfiguringValue(data.AccX);
                     break;
                 case ConfigurationStep.AccXRecording:
                     ConfiguringValue = data.AccX;
@@ -171,7 +186,7 @@ namespace OpenDataDisc.UI.ViewModels
                     MoveToNextStepIfEnoughMeasurements();
                     break;
                 case ConfigurationStep.AccYSetup:
-                    ConfiguringValue = data.AccY;
+                    UpdateAccConfiguringValue(data.AccY);
                     break;
                 case ConfigurationStep.AccYRecording:
                     ConfiguringValue = data.AccY;
@@ -179,7 +194,7 @@ namespace OpenDataDisc.UI.ViewModels
                     MoveToNextStepIfEnoughMeasurements();
                     break;
                 case ConfigurationStep.AccZSetup:
-                    ConfiguringValue = data.AccZ;
+                    UpdateAccConfiguringValue(data.AccZ);
                     break;
                 case ConfigurationStep.AccZRecording:
                     ConfiguringValue = data.AccZ;
@@ -198,7 +213,7 @@ namespace OpenDataDisc.UI.ViewModels
 
         private void MoveToNextStepIfEnoughMeasurements()
         {
-            if (accMeasurements.Count > measurementsCount || gyroMeasurements.Count > measurementsCount)
+            if (accMeasurements.Count > measurementCountThreshold || gyroMeasurements.Count > measurementCountThreshold)
             {
                 AdvanceToNextStep();
                 TakeConfigurationAverage();
