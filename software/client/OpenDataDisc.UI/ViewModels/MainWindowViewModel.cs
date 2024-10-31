@@ -136,9 +136,6 @@ public class MainWindowViewModel : ViewModelBase
 
         this.WhenAnyValue(x => x.CurrentState)
             .Subscribe(_ => ControlMessageRateCalculation());
-
-        //this.WhenAnyValue(x => x.SelectedDevice)
-        //    .Subscribe(_ => CheckForConfiguration());
     }
 
     private void ControlMessageRateCalculation()
