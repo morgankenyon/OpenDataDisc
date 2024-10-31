@@ -8,7 +8,7 @@ namespace OpenDataDisc.Services
 {
     internal class DataSchemaService : IDataSchemaService
     {
-        private readonly Migration _latestMigration = Migration.SensorData;
+        private readonly Migration _latestMigration = Migration.DiscConfiguration;
         public async Task MigrateSchemaToLatest()
         {
             try
@@ -97,6 +97,22 @@ namespace OpenDataDisc.Services
 
                         currentMigration = Migration.SensorData;
                         break;
+                    case Migration.SensorData:
+                        migrationText = @"
+    BEGIN TRANSACTION;
+
+    CREATE Table disc_configuration (deviceId TEXT PRIMARY KEY, date INTEGER, accXOffset FLOAT, accYOffset FLOAT, accZOffset FLOAT, gyroXOffset FLOAT, gyroYOffset FLOAT, gyroZOffset FLOAT);
+
+    INSERT INTO migrations (name, number) VALUES ('disc_configuration_table', 3);
+
+    COMMIT;
+";
+
+                        command.CommandText = migrationText;
+                        await command.ExecuteNonQueryAsync();
+
+                        currentMigration = Migration.DiscConfiguration;
+                        break;
                     default:
 
                         break;
@@ -109,6 +125,7 @@ namespace OpenDataDisc.Services
     {
         Empty = 0,
         MigrationsTable = 1,
-        SensorData = 2
+        SensorData = 2,
+        DiscConfiguration = 3
     }
 }

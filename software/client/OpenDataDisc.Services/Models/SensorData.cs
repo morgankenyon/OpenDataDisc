@@ -34,6 +34,11 @@ namespace OpenDataDisc.Services.Models
             return val;
         }
 
+        public override string? ToString()
+        {
+            return $"{Date}, {CycleCount}, Ax: {AccX}, Ay: {AccY}, Az: {AccZ}, Gx: {GyroX}, Gy: {GyroY}, Gz: {GyroZ}";
+        }
+
         public SensorData(string sensorString)
         {
             sensorString = sensorString.Trim();

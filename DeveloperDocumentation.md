@@ -78,6 +78,8 @@ The [Avalonia Docs](https://docs.avaloniaui.net/docs/tutorials/music-store-app/a
 But simply:
 
 * Load the above url
+* Find the icon url listed in that page
+  * Currently: https://avaloniaui.github.io/icons.html
 * Pick an icon
 * Copy the `StreamGeometry` tag into the `Icons.axaml`
 * Use the `x:Key` wherever is needed.

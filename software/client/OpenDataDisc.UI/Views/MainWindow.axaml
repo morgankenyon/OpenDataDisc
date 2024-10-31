@@ -32,9 +32,11 @@
 
 		<!-- Row that allows bluetooth connections -->
 		<Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#000064">
-			<Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Command="{Binding SelectBluetoothDeviceCommand}">
-				<PathIcon Data="{StaticResource bluetooth_regular}" />
-			</Button>
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Command="{Binding SelectBluetoothDeviceCommand}">
+					<PathIcon Data="{StaticResource options_regular}" />
+				</Button>
+			</StackPanel>
 		</Border>
 
 		<!-- Row that shows connection status -->

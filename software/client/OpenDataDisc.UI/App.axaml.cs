@@ -41,12 +41,13 @@ public partial class App : Application
         dataSchemaService.MigrateSchemaToLatest().GetAwaiter().GetResult();
 
         var sensorService = Services.GetRequiredService<ISensorService>();
+        var configurationService = Services.GetRequiredService<IConfigurationService>();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(sensorService),
+                DataContext = new MainWindowViewModel(sensorService, configurationService),
             };
         }
 

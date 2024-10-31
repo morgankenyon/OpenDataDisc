@@ -17,9 +17,9 @@ namespace OpenDataDisc.Services
 
             try
             {
-                SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
+                using SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
 
-                sqlConn.Open();
+                await sqlConn.OpenAsync();
 
                 var command = new SQLiteCommand("SELECT COUNT(*) FROM sensor_data WHERE date > ?", sqlConn);
 
@@ -27,6 +27,7 @@ namespace OpenDataDisc.Services
 
                 var result = await command.ExecuteScalarAsync(token);
 
+                await sqlConn.CloseAsync();
                 if (int.TryParse(result.ToString(), out var messages))
                 {
                     return messages;
@@ -34,6 +35,7 @@ namespace OpenDataDisc.Services
             }
             catch (Exception ex)
             {
+                //TODO: log something
                 throw ex;
             }
 
@@ -44,9 +46,9 @@ namespace OpenDataDisc.Services
         {
             try
             {
-                SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
+                using SQLiteConnection sqlConn = new SQLiteConnection(connectionString);
 
-                sqlConn.Open();
+                await sqlConn.OpenAsync();
 
                 var command = new SQLiteCommand("INSERT INTO sensor_data (date, cycleCount, accX, accY, accZ, gyroX, gyroY, gyroZ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", sqlConn);
                 command.Parameters.AddWithValue("date", sensorData.Date);
@@ -59,9 +61,12 @@ namespace OpenDataDisc.Services
                 command.Parameters.AddWithValue("gyroZ", sensorData.GyroZ);
 
                 await command.ExecuteNonQueryAsync(token);
+
+                await sqlConn.CloseAsync();
             }
             catch (Exception ex)
             {
+                //TODO: log something
                 throw ex;
             }
         }

@@ -8,6 +8,9 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -25,8 +28,13 @@ public enum MainWindowState
 
 public class MainWindowViewModel : ViewModelBase
 {
+    //string references
+    private readonly string ConfigMode = "config";
+    private readonly string ThrowMode = "throw";
+
     //di references
     private readonly ISensorService _sensorService;
+    private readonly IConfigurationService _configurationService;
 
     //ui accessed variables
     private SelectedDeviceViewModel? _selectedDevice;
@@ -65,6 +73,7 @@ public class MainWindowViewModel : ViewModelBase
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
     public Interaction<ConfirmationWindowViewModel, ConfirmationResult> ShowConfirmationDialog { get; }
+    public Interaction<ConfigurationWindowViewModel, DiscConfigurationData> ShowConfigurationDialog { get; }
 
     //command for propagating selected device
     public ICommand SelectBluetoothDeviceCommand { get; }
@@ -75,12 +84,14 @@ public class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _deviceConnectedTokenSource;
     private CancellationTokenSource? _messageRateTokenSource;
     
-    public MainWindowViewModel(ISensorService sensorService)
+    public MainWindowViewModel(ISensorService sensorService,
+        IConfigurationService configurationService)
     {
         CurrentState = MainWindowState.Unconnected;
 
         ShowBluetoothDialog = new Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?>();
         ShowConfirmationDialog = new Interaction<ConfirmationWindowViewModel, ConfirmationResult>();
+        ShowConfigurationDialog = new Interaction<ConfigurationWindowViewModel, DiscConfigurationData>();
 
         SelectBluetoothDeviceCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -112,6 +123,7 @@ public class MainWindowViewModel : ViewModelBase
         });
 
         _sensorService = sensorService;
+        _configurationService = configurationService;
 
         this.WhenAnyValue(x => x.MessageCount)
             .Subscribe(_ => {
@@ -187,29 +199,17 @@ public class MainWindowViewModel : ViewModelBase
     {
         EventHandler<GattCharacteristicValueChangedEventArgs> privateMethod = (object? sender, GattCharacteristicValueChangedEventArgs e) =>
         {
-            if (e.Value != null)
+            var (data, errorMessage) = e.ExtractSensorData();
+            if (data != null)
             {
-                var strR = System.Text.Encoding.Default.GetString(e.Value);
-                var strReceived = strR.Split("\0")[0];
-
-                if (!string.IsNullOrWhiteSpace(strReceived))
-                {
-                    //messages.Add(strReceived);
-                    updateCount();
-                    SensorChannel.Writer.TryWrite(new SensorData(strReceived));
-                }
-                else
-                {
-                    Console.WriteLine($"Received - {e.Value} - {strReceived}");
-                }
-            }
-            else if (e.Error != null)
-            {
-                Console.WriteLine($"Received Error - {e.Error.Message}");
+                updateCount();
+                SensorChannel.Writer.TryWrite(data);
+                //messages.Add(data.ToString() ?? "");
             }
             else
             {
-                Console.WriteLine("Received message");
+                //TODO: log this somewhere more useful
+                Console.WriteLine(errorMessage);
             }
         };
 
@@ -251,14 +251,21 @@ public class MainWindowViewModel : ViewModelBase
 
             if (service != null)
             {
-                var chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
+                GattCharacteristic chars = await service.GetCharacteristicAsync(Constants.CharacteristicUuid);
                 if (chars != null)
                 {
-                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
-                    await chars.StartNotificationsAsync();
-
                     SelectedDevice = selectedDevice;
                     CurrentState = MainWindowState.Connected;
+                    await chars.StartNotificationsAsync();
+
+                    //ensure sensor configuration
+                    await ConfirmOrGenerateConfiguration(chars, token);
+
+
+                    //subscribe to messages
+                    chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
+
+                    var properties = chars.Properties;
 
                     await Task.Delay(Timeout.Infinite, token)
                         .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -277,4 +284,58 @@ public class MainWindowViewModel : ViewModelBase
 
         CurrentState = MainWindowState.Unconnected;
     }
+
+    private async Task ConfirmOrGenerateConfiguration(GattCharacteristic chars, CancellationToken token)
+    {
+        if (_selectedDevice != null)
+        {
+            var deviceId = _selectedDevice.Device.Id;
+            //check for configuration
+            var hasConfiguration = await DoesDeviceHaveConfiguration(deviceId, token);
+
+            //if no configuration, open window for configuration
+            if (!hasConfiguration)
+            {
+                //change to config mode
+                await SendMessageToDevice(chars, ConfigMode);
+                var message = new ConfigurationWindowViewModel(deviceId);
+                chars.CharacteristicValueChanged += message.HandleMessage;
+                var result = await ShowConfigurationDialog.Handle(message);
+
+                if (result != null)
+                {
+                    await _configurationService.SaveDeviceConfiguration(result, token);
+                }
+
+                chars.CharacteristicValueChanged -= message.HandleMessage;
+
+                //change back to throw mode
+                await SendMessageToDevice(chars, ThrowMode);
+            }
+        }
+    }
+    private async Task<bool> DoesDeviceHaveConfiguration(string deviceId, CancellationToken token)
+    {
+        if (_selectedDevice != null)
+        {
+            var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id, token);
+
+            return deviceConfiguration != null;
+        }
+        return false;
+    }
+
+    private async Task SendMessageToDevice(GattCharacteristic chars, string message)
+    {
+        byte[] configureMessage = Encoding.UTF8.GetBytes(message);
+        try
+        {
+            await chars.WriteValueWithResponseAsync(configureMessage);
+        }
+        catch (System.Runtime.InteropServices.COMException comException)
+        {
+            //LOG somehow
+        }
+    }
+
 }

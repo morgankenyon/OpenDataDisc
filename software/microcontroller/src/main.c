@@ -14,8 +14,9 @@
 #include <zephyr/bluetooth/uuid.h>
 
 //General Macros and variables
-#define CONNECTED_SLEEP_TIME_MS           1000
-#define UNCONNECTED_SLEEP_TIME_MS         4000
+#define THROW_SLEEP_TIME_MS                 100
+#define CONFIG_SLEEP_TIME_MS                10
+#define UNCONNECTED_SLEEP_TIME_MS           4000
 #define I2C_NODE        DT_NODELABEL(arduino_i2c)
 static const struct device *i2c_dev = DEVICE_DT_GET(I2C_NODE);
 
@@ -65,20 +66,6 @@ static uint8_t acc_buffer[6];
 #define ODD_SENSOR_CHRC_VAL BT_UUID_128_ENCODE(0x6ef4cd45, 0x7223, 0x43b2, 0xb5c9, 0xd13410b494a5)
 #define ODD_SENSOR_CHRC BT_UUID_DECLARE_128(ODD_SENSOR_CHRC_VAL)
 
-volatile bool ble_ready=false;
-volatile bool ble_connected=false;
-
-static const struct bt_data ad[] = 
-{
-    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL, ODD_SERV_VAL)
-};
-
-BT_GATT_SERVICE_DEFINE(custom_srv,
-	BT_GATT_PRIMARY_SERVICE(ODD_SERVICE),
-	BT_GATT_CHARACTERISTIC(ODD_SENSOR_CHRC, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL, NULL, NULL),
-	BT_GATT_CCC(NULL, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
-);
 
 /****************** Structs and enums  ******************/
 typedef enum AccelerometerSampleRate {
@@ -134,6 +121,11 @@ typedef enum GyroFullScale {
     GYRO_FULLSCALE_125dps_ENABLED       = 0x02,
 } GyroFullScale;
 
+typedef enum OperationMode {
+    THROW           = 0x00,
+    CONFIG          = 0x02
+} OperationMode;
+
 typedef struct IMUSettings
 {
     AccelerometerSampleRate accSampleRate;
@@ -165,8 +157,62 @@ typedef struct IMUData
     uint32_t cycleCount;
 } IMUData;
 
+enum OperationMode operation_mode;
 
 
+/************* Bluetooth Info **************/
+volatile bool ble_ready=false;
+volatile bool ble_connected=false;
+
+static const struct bt_data ad[] = 
+{
+    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
+    BT_DATA_BYTES(BT_DATA_UUID128_ALL, ODD_SERV_VAL)
+};
+
+
+//used to read messages written to the server from the client
+static ssize_t on_write(struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                        const void *buf, uint16_t len, uint16_t offset, uint8_t flags)
+{
+    char received_data[100];  // Adjust size based on your expected data length
+
+    printk("In on_write\n");
+    // Ensure the length does not exceed buffer size
+    if (len >= sizeof(received_data)) {
+        printk("Error: Data too long to fit into buffer\n");
+        return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+    }
+
+    // Copy the incoming bytes to the string buffer and add null termination
+    memcpy(received_data, buf, len);
+    received_data[len] = '\0';  // Null-terminate the string
+
+    // Print or process the received string
+    printk("Received data as string: %s\n", received_data);
+
+    if (strcmp(received_data, "throw") == 0) {
+        operation_mode = THROW;
+    } else if (strcmp(received_data, "config") == 0) {
+        operation_mode = CONFIG;
+    } else {
+        printk("Received unknown command\n");
+    }
+
+    // Return the number of bytes written
+    return len;
+}
+
+BT_GATT_SERVICE_DEFINE(custom_srv,
+	BT_GATT_PRIMARY_SERVICE(ODD_SERVICE),
+	BT_GATT_CHARACTERISTIC(ODD_SENSOR_CHRC, 
+        BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_WRITE | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
+        BT_GATT_PERM_WRITE,
+        NULL,
+        on_write,
+        NULL),
+	BT_GATT_CCC(NULL, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+);
 /********************* Utility Functions  *****************/
 /*
  * Gets uptime of system in milliseconds
@@ -289,6 +335,7 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 {
     printk("connected\n");
     ble_connected = true;
+    operation_mode = THROW;
 }
 
 /*
@@ -494,6 +541,8 @@ int main(void)
     }
     printk("BLE stack ready\n");
 
+    operation_mode = THROW;
+
     int err;
     err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
     if (err)
@@ -518,18 +567,36 @@ int main(void)
     {
         if (ble_connected)
         {
-            struct IMUData imuData = pull_imu_data(settings);
-
-            printk("%d: Writing to bluetooth service\n", count);
-            err = notify_adc(imuData);
-            if (err)
+            if (operation_mode == THROW)
             {
-                printk("Writing failed (err %d)\n", err);
-                return 1;
-            }
-            count++;
+                struct IMUData imuData = pull_imu_data(settings);
 
-            k_msleep(CONNECTED_SLEEP_TIME_MS);
+                //printk("%d: Writing to bluetooth service\n", count);
+                err = notify_adc(imuData);
+                if (err)
+                {
+                    printk("Writing failed (err %d)\n", err);
+                    return 1;
+                }
+                count++;
+
+                k_msleep(THROW_SLEEP_TIME_MS);
+            }
+            else if (operation_mode == CONFIG)
+            {
+                struct IMUData imuData = pull_imu_data(settings);
+
+                //printk("%d: Writing to bluetooth service\n", count);
+                err = notify_adc(imuData);
+                if (err)
+                {
+                    printk("Writing failed (err %d)\n", err);
+                    return 1;
+                }
+                count++;
+
+                k_msleep(CONFIG_SLEEP_TIME_MS);
+            }
         }
         else
         {
