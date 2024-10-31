@@ -28,6 +28,10 @@ public enum MainWindowState
 
 public class MainWindowViewModel : ViewModelBase
 {
+    //string references
+    private readonly string ConfigMode = "config";
+    private readonly string ThrowMode = "throw";
+
     //di references
     private readonly ISensorService _sensorService;
     private readonly IConfigurationService _configurationService;
@@ -258,7 +262,7 @@ public class MainWindowViewModel : ViewModelBase
                     await chars.StartNotificationsAsync();
 
                     //ensure sensor configuration
-                    await HandleConfiguration(chars);
+                    await ConfirmOrGenerateConfiguration(chars, token);
 
 
                     //subscribe to messages
@@ -284,36 +288,40 @@ public class MainWindowViewModel : ViewModelBase
         CurrentState = MainWindowState.Unconnected;
     }
 
-    private async Task HandleConfiguration(GattCharacteristic chars)
+    private async Task ConfirmOrGenerateConfiguration(GattCharacteristic chars, CancellationToken token)
     {
         if (_selectedDevice != null)
         {
+            var deviceId = _selectedDevice.Device.Id;
             //check for configuration
-            var hasConfiguration = await DoesDeviceHaveConfiguration(_selectedDevice.Device.Id);
+            var hasConfiguration = await DoesDeviceHaveConfiguration(deviceId, token);
 
             //if no configuration, open window for configuration
             if (!hasConfiguration)
             {
-                var message = new ConfigurationWindowViewModel();
+                //change to config mode
+                await SendMessageToDevice(chars, ConfigMode);
+                var message = new ConfigurationWindowViewModel(deviceId);
                 chars.CharacteristicValueChanged += message.HandleMessage;
                 var result = await ShowConfigurationDialog.Handle(message);
 
                 if (result != null)
                 {
-                    await _configurationService.SaveDeviceConfiguration(result);
+                    await _configurationService.SaveDeviceConfiguration(result, token);
                 }
-                //
-                //var message = new ConfirmationWindowViewModel("Would you like to disconnect your bluetooth device?");
-                //var result = await ShowConfirmationDialog.Handle(message);
+
                 chars.CharacteristicValueChanged -= message.HandleMessage;
+
+                //change back to throw mode
+                await SendMessageToDevice(chars, ThrowMode);
             }
         }
     }
-    private async Task<bool> DoesDeviceHaveConfiguration(string deviceId)
+    private async Task<bool> DoesDeviceHaveConfiguration(string deviceId, CancellationToken token)
     {
         if (_selectedDevice != null)
         {
-            var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id);
+            var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id, token);
 
             if (deviceConfiguration != null)
             {
@@ -329,15 +337,17 @@ public class MainWindowViewModel : ViewModelBase
         return false;
     }
 
-    //byte[] configureMessage = Encoding.UTF8.GetBytes("configure");
-    //try
-    //{
+    private async Task SendMessageToDevice(GattCharacteristic chars, string message)
+    {
+        byte[] configureMessage = Encoding.UTF8.GetBytes(message);
+        try
+        {
+            await chars.WriteValueWithResponseAsync(configureMessage);
+        }
+        catch (System.Runtime.InteropServices.COMException comException)
+        {
+            //LOG somehow
+        }
+    }
 
-    //    await chars.WriteValueWithResponseAsync(configureMessage);
-    //}
-    //catch (System.Runtime.InteropServices.COMException comException)
-    //{
-    //    //var exception = JsonSerializer.Serialize(comException);
-    //    configureMessage = Encoding.ASCII.GetBytes("hello");
-    //}
 }

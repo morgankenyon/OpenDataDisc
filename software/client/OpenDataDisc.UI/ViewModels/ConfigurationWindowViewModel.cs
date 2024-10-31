@@ -10,11 +10,15 @@ namespace OpenDataDisc.UI.ViewModels
 {
     public class ConfigurationWindowViewModel : ViewModelBase
     {
+        private readonly string deviceId;
         private int measurementsCount = 200;
         private List<double> accMeasurements = new List<double>();
         private List<(double, double, double)> gyroMeasurements = new List<(double, double, double)>();
-        public ConfigurationWindowViewModel()
+
+        public ConfigurationWindowViewModel(string deviceId)
         {
+            this.deviceId = deviceId;
+
             this.WhenAnyValue(x => x.Step)
                 .Subscribe(_ => {
                     this.RaisePropertyChanged(nameof(StepText));
@@ -224,7 +228,7 @@ namespace OpenDataDisc.UI.ViewModels
                     GyroZValue = gyroMeasurements.Average(x => x.Item3);
                     gyroMeasurements.Clear();
                     DiscConfiguration = new DiscConfigurationData(
-                        "rst",
+                        deviceId,
                         DateTime.UtcNow.Ticks,
                         AccXValue,
                         AccYValue,

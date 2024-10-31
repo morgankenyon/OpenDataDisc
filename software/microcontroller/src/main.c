@@ -559,7 +559,7 @@ int main(void)
         {
             struct IMUData imuData = pull_imu_data(settings);
 
-            printk("%d: Writing to bluetooth service\n", count);
+            //printk("%d: Writing to bluetooth service\n", count);
             err = notify_adc(imuData);
             if (err)
             {
