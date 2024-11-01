@@ -1,8 +1,6 @@
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
-using OpenDataDisc.Services.Models;
 using OpenDataDisc.UI.ViewModels;
-using System;
 
 namespace OpenDataDisc.UI.Views;
 

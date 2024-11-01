@@ -71,7 +71,7 @@
 				<ItemsControl Margin="20" ItemsSource="{Binding Messages}">
 				</ItemsControl>
 			</ScrollViewer>-->
-			<ScottPlot:AvaPlot Name="AvaPlot1"/>
+			<ScottPlot:AvaPlot Name="SensorPlot"/>
 		</Border>
 	</Grid>
 </Window>

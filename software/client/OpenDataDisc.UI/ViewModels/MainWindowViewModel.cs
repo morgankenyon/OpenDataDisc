@@ -7,6 +7,7 @@ using OpenDataDisc.UI.Views;
 using ReactiveUI;
 using ScottPlot.Avalonia;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Text;
@@ -82,6 +83,8 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<string> Messages { get; } = new();
     private CancellationTokenSource? _deviceConnectedTokenSource;
     private CancellationTokenSource? _messageRateTokenSource;
+
+    public static readonly ConcurrentQueue<SensorData> graphingQueue = new ConcurrentQueue<SensorData>();
     
     public MainWindowViewModel(ISensorService sensorService,
         IConfigurationService configurationService)
@@ -203,6 +206,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 updateCount();
                 SensorChannel.Writer.TryWrite(data);
+                graphingQueue.Enqueue(data);
                 //messages.Add(data.ToString() ?? "");
             }
             else
