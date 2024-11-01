@@ -16,7 +16,9 @@ namespace OpenDataDisc.UI.Views;
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     readonly ScottPlot.Plottables.DataStreamer Streamer1;
+    readonly ScottPlot.Plottables.DataStreamer Streamer2;
     readonly ScottPlot.DataGenerators.RandomWalker Walker1 = new(0);
+    readonly ScottPlot.DataGenerators.RandomWalker Walker2 = new(1);
     readonly ScottPlot.Plottables.VerticalLine VLine;
     private DispatcherTimer _addNewDataTimer;
     private DispatcherTimer _updatePlotTimer;
@@ -40,8 +42,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         //avaPlot1.Plot.Add.Scatter(dataX, dataY);
         //avaPlot1.Refresh();
 
-        var Streamer1 = avaPlot1.Plot.Add.DataStreamer(1000);
+        Streamer1 = avaPlot1.Plot.Add.DataStreamer(300);
+        Streamer2 = avaPlot1.Plot.Add.DataStreamer(300);
         VLine = avaPlot1.Plot.Add.VerticalLine(0, 2, ScottPlot.Colors.Red);
+
+        //avaPlot1.Plot.Axes.ContinuouslyAutoscale = true;
+        //Streamer1.ManageAxisLimits = false;
+        Streamer1.ViewScrollLeft();
+        Streamer2.ViewScrollLeft();
 
         // disable mouse interaction by default
         avaPlot1.UserInputProcessor.Disable();
@@ -59,6 +67,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             // add new sample data
             var nextValue = Walker1.Next(count);
             Streamer1.AddRange(nextValue);
+            Streamer2.AddRange(Walker2.Next(count));
 
             // slide marker to the left
             avaPlot1.Plot.GetPlottables<Marker>()
