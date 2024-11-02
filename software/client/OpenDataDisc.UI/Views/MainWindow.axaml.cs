@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using OpenDataDisc.Services.Models;
+using OpenDataDisc.UI.Filter;
 using OpenDataDisc.UI.Models;
 using OpenDataDisc.UI.ViewModels;
 using ReactiveUI;
@@ -22,6 +23,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     readonly DataStreamer gyroYStreamer;
     private DispatcherTimer _addNewDataTimer;
     private DispatcherTimer _updatePlotTimer;
+    private readonly ImuProcessor _imuProcessor = new ImuProcessor();
     public MainWindow()
     {
         InitializeComponent();
@@ -35,15 +37,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         AvaPlot sensorPlot = this.Find<AvaPlot>("SensorPlot");
 
-        accXStreamer = sensorPlot.Plot.Add.DataStreamer(300);
-        accYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
-        gyroXStreamer = sensorPlot.Plot.Add.DataStreamer(300);
-        gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
+        accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        accYStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //gyroXStreamer = sensorPlot.Plot.Add.DataStreamer(300);
+        //gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
 
         accXStreamer.ViewScrollLeft();
         accYStreamer.ViewScrollLeft();
-        gyroXStreamer.ViewScrollLeft();
-        gyroYStreamer.ViewScrollLeft();
+        //gyroXStreamer.ViewScrollLeft();
+        //gyroYStreamer.ViewScrollLeft();
 
         // disable mouse interaction by default
         sensorPlot.UserInputProcessor.Disable();
@@ -56,14 +58,26 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         _addNewDataTimer.Tick += (s, e) =>
         {
             ConcurrentQueue<SensorData> queue = MainWindowViewModel.graphingQueue;
-            if (queue.TryDequeue(out SensorData result))
+            if (queue.TryDequeue(out SensorData sensorData))
             {
+                var discConfig = MainWindowViewModel.discConfiguration!;
+                var imuMeasurement = new ImuMeasurement
+                {
+                    Timestamp = sensorData.Date,
+                    AccelX = sensorData.AccX - (1 - discConfig.AccXOffset),
+                    AccelY = sensorData.AccY - (1 - discConfig.AccYOffset),
+                    AccelZ = sensorData.AccZ - (1 - discConfig.AccZOffset),
+                    GyroX = sensorData.GyroX - discConfig.GyroXOffset,
+                    GyroY = sensorData.GyroY - discConfig.GyroYOffset,
+                    GyroZ = sensorData.GyroZ - discConfig.GyroZOffset,
+                };
 
-                accXStreamer.Add(result.AccX);
-                accYStreamer.Add(result.AccY);
-                gyroXStreamer.Add(result.GyroX);
-                gyroYStreamer.Add(result.GyroY);
+                var newState = _imuProcessor.ProcessMeasurement(imuMeasurement);
 
+                accXStreamer.Add(newState.Roll * 100 / Math.PI);
+                accYStreamer.Add(newState.Pitch * 100 / Math.PI);
+                //gyroXStreamer.Add(sensorData.GyroX);
+                //gyroYStreamer.Add(sensorData.GyroY);
                 // slide marker to the left
                 sensorPlot.Plot.GetPlottables<Marker>()
                     .ToList()

@@ -85,6 +85,7 @@ public class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _messageRateTokenSource;
 
     public static readonly ConcurrentQueue<SensorData> graphingQueue = new ConcurrentQueue<SensorData>();
+    public static DiscConfigurationData? discConfiguration;
     
     public MainWindowViewModel(ISensorService sensorService,
         IConfigurationService configurationService)
@@ -294,7 +295,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var deviceId = _selectedDevice.Device.Id;
             //check for configuration
-            var hasConfiguration = await DoesDeviceHaveConfiguration(deviceId, token);
+            var (hasConfiguration, configuration) = await DoesDeviceHaveConfiguration(deviceId, token);
 
             //if no configuration, open window for configuration
             if (!hasConfiguration)
@@ -307,6 +308,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 if (result != null)
                 {
+                    discConfiguration = configuration;
                     await _configurationService.SaveDeviceConfiguration(result, token);
                 }
 
@@ -315,17 +317,21 @@ public class MainWindowViewModel : ViewModelBase
                 //change back to throw mode
                 await SendMessageToDevice(chars, ThrowMode);
             }
+            else
+            {
+                discConfiguration = configuration;
+            }
         }
     }
-    private async Task<bool> DoesDeviceHaveConfiguration(string deviceId, CancellationToken token)
+    private async Task<(bool, DiscConfigurationData?)> DoesDeviceHaveConfiguration(string deviceId, CancellationToken token)
     {
         if (_selectedDevice != null)
         {
             var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id, token);
 
-            return deviceConfiguration != null;
+            return (deviceConfiguration != null, deviceConfiguration);
         }
-        return false;
+        return (false, null);
     }
 
     private async Task SendMessageToDevice(GattCharacteristic chars, string message)
