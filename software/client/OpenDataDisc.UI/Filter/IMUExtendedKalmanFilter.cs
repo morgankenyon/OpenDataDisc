@@ -20,7 +20,7 @@ namespace OpenDataDisc.UI.Filter
         private readonly bool gyroInDegrees;      // Flag indicating if gyro measurements are in degrees/sec
 
         // Shorter moving average for better responsiveness
-        private const int MOVING_AVERAGE_LENGTH = 3;
+        private const int MOVING_AVERAGE_LENGTH = 1;
         private Queue<(double X, double Y, double Z)> accHistory;
 
         public IMUExtendedKalmanFilter(bool gyroInDegrees = true, double processNoiseScale = 0.1, double measurementNoise = 0.1)

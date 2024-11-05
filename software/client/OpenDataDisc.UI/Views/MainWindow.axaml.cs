@@ -17,8 +17,8 @@ namespace OpenDataDisc.UI.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
-    readonly DataStreamer accXStreamer;
-    readonly DataStreamer accYStreamer;
+    //readonly DataStreamer rollAngleStreamer;
+    readonly DataStreamer rawXAngleStreamer;
     readonly DataStreamer magnitudeStreamer;
     readonly DataStreamer gyroYStreamer;
     private DispatcherTimer _addNewDataTimer;
@@ -37,13 +37,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         AvaPlot sensorPlot = this.Find<AvaPlot>("SensorPlot");
 
-        accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
-        accYStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //rollAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        rawXAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         magnitudeStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         //gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
 
-        accXStreamer.ViewScrollLeft();
-        accYStreamer.ViewScrollLeft();
+        //rollAngleStreamer.ViewScrollLeft();
+        rawXAngleStreamer.ViewScrollLeft();
         magnitudeStreamer.ViewScrollLeft();
         //gyroXStreamer.ViewScrollLeft();
         //gyroYStreamer.ViewScrollLeft();
@@ -98,9 +98,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     + measurement.AccelZ * measurement.AccelZ);
                 Console.WriteLine($"Acc Magnitude: {magnitude:F3}G");
 
-                accXStreamer.Add(roll);
-                accYStreamer.Add(pitch);
-                magnitudeStreamer.Add(magnitude);
+                //rollAngleStreamer.Add(roll);
+                rawXAngleStreamer.Add(measurement.AccelX);
+                //magnitudeStreamer.Add(magnitude);
                 //gyroXStreamer.Add(sensorData.GyroX);
                 //gyroYStreamer.Add(sensorData.GyroY);
                 // slide marker to the left
@@ -124,9 +124,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
          };
         _updatePlotTimer.Tick += (s, e) =>
          {
-             if (accXStreamer.HasNewData)
+             if (rawXAngleStreamer.HasNewData)
              {
-                 sensorPlot.Plot.Title($"Processed {accXStreamer.Data.CountTotal:N0} points");
+                 sensorPlot.Plot.Title($"Processed {rawXAngleStreamer.Data.CountTotal:N0} points");
                  sensorPlot.Refresh();
              }
          };
