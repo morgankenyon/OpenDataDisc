@@ -14,7 +14,7 @@
 #include <zephyr/bluetooth/uuid.h>
 
 //General Macros and variables
-#define THROW_SLEEP_TIME_MS                 100
+#define THROW_SLEEP_TIME_MS                 10
 #define CONFIG_SLEEP_TIME_MS                10
 #define UNCONNECTED_SLEEP_TIME_MS           4000
 #define I2C_NODE        DT_NODELABEL(arduino_i2c)

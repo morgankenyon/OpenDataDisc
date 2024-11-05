@@ -19,11 +19,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     readonly DataStreamer accXStreamer;
     readonly DataStreamer accYStreamer;
-    readonly DataStreamer gyroXStreamer;
+    readonly DataStreamer magnitudeStreamer;
     readonly DataStreamer gyroYStreamer;
     private DispatcherTimer _addNewDataTimer;
     private DispatcherTimer _updatePlotTimer;
-    private readonly ImuProcessor _imuProcessor = new ImuProcessor();
+    //private readonly ImuProcessor _imuProcessor = new ImuProcessor();
     public MainWindow()
     {
         InitializeComponent();
@@ -39,11 +39,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         accYStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
-        //gyroXStreamer = sensorPlot.Plot.Add.DataStreamer(300);
+        magnitudeStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         //gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
 
         accXStreamer.ViewScrollLeft();
         accYStreamer.ViewScrollLeft();
+        magnitudeStreamer.ViewScrollLeft();
         //gyroXStreamer.ViewScrollLeft();
         //gyroYStreamer.ViewScrollLeft();
 
@@ -88,12 +89,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     measurement.AccelZ,
                     measurement.GyroX,
                     measurement.GyroY);
-                Console.WriteLine($"Roll: {roll * 180 / Math.PI}°, Pitch: {pitch * 180 / Math.PI}°");
+                //Console.WriteLine($"Roll: {roll * 180 / Math.PI}°, Pitch: {pitch * 180 / Math.PI}°");
 
-                var newState = _imuProcessor.ProcessMeasurement(measurement);
+                //var newState = _imuProcessor.ProcessMeasurement(measurement);
 
-                accXStreamer.Add(newState.Roll * 100 / Math.PI);
-                accYStreamer.Add(newState.Pitch * 100 / Math.PI);
+                double magnitude = Math.Sqrt(measurement.AccelX * measurement.AccelX
+                    + measurement.AccelY * measurement.AccelY
+                    + measurement.AccelZ * measurement.AccelZ);
+                Console.WriteLine($"Acc Magnitude: {magnitude:F3}G");
+
+                accXStreamer.Add(roll);
+                accYStreamer.Add(pitch);
+                magnitudeStreamer.Add(magnitude);
                 //gyroXStreamer.Add(sensorData.GyroX);
                 //gyroYStreamer.Add(sensorData.GyroY);
                 // slide marker to the left

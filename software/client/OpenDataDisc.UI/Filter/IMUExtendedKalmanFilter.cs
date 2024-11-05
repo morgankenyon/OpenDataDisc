@@ -4,6 +4,7 @@ using System;
 namespace OpenDataDisc.UI.Filter
 {
     using System;
+    using System.Collections.Generic;
     using MathNet.Numerics.LinearAlgebra;
 
     public class IMUExtendedKalmanFilter
@@ -18,18 +19,26 @@ namespace OpenDataDisc.UI.Filter
         private const double RAD_TO_DEG = 180.0 / Math.PI;
         private readonly bool gyroInDegrees;      // Flag indicating if gyro measurements are in degrees/sec
 
-        public IMUExtendedKalmanFilter(bool gyroInDegrees = true, double processNoiseScale = 0.001, double measurementNoise = 0.1)
+        // Moving average filter length for accelerometer readings
+        private const int MOVING_AVERAGE_LENGTH = 10;
+        private Queue<(double X, double Y, double Z)> accHistory;
+        private readonly double MAX_VALID_ANGLE = 85.0 * DEG_TO_RAD;  // Maximum valid angle in radians
+
+        public IMUExtendedKalmanFilter(bool gyroInDegrees = true, double processNoiseScale = 0.01, double measurementNoise = 1.0)
         {
             // Initialize state vector [roll, pitch, rollRate, pitchRate] (all in radians)
             state = Matrix<double>.Build.Dense(4, 1);
 
             // Initialize error covariance matrix with high initial uncertainty
-            errorCovariance = Matrix<double>.Build.DenseIdentity(4) * 1.0;
+            errorCovariance = Matrix<double>.Build.DenseIdentity(4) * 10.0;
 
             this.processNoiseScale = processNoiseScale;
             this.measurementNoise = measurementNoise;
             this.isInitialized = false;
             this.gyroInDegrees = gyroInDegrees;
+
+            // Initialize moving average queue
+            accHistory = new Queue<(double X, double Y, double Z)>();
         }
 
         public (double RollDegrees, double PitchDegrees) Update(
@@ -37,15 +46,35 @@ namespace OpenDataDisc.UI.Filter
             double accXg, double accYg, double accZg,  // Accelerometer readings in Gs
             double gyroX, double gyroY)                // Gyro readings in deg/s or rad/s based on constructor flag
         {
-            // Convert gyro measurements to rad/s if they're in deg/s
-            double gyroXrad = gyroInDegrees ? gyroX * DEG_TO_RAD : gyroX;
-            double gyroYrad = gyroInDegrees ? gyroY * DEG_TO_RAD : gyroY;
+            // Validate and clean accelerometer inputs
+            if (!ValidateAccelerometerReadings(accXg, accYg, accZg, out var cleanAccX, out var cleanAccY, out var cleanAccZ))
+            {
+                // If invalid readings, return last known good state
+                return (state[0, 0] * RAD_TO_DEG, state[1, 0] * RAD_TO_DEG);
+            }
+
+            // Update moving average
+            accHistory.Enqueue((cleanAccX, cleanAccY, cleanAccZ));
+            if (accHistory.Count > MOVING_AVERAGE_LENGTH)
+            {
+                accHistory.Dequeue();
+            }
+
+            // Calculate smoothed accelerometer readings
+            var avgAcc = CalculateAverageAccelerometer();
+            cleanAccX = avgAcc.X;
+            cleanAccY = avgAcc.Y;
+            cleanAccZ = avgAcc.Z;
+
+            // Clean and convert gyro measurements
+            double gyroXrad = CleanGyroReading(gyroX, gyroInDegrees);
+            double gyroYrad = CleanGyroReading(gyroY, gyroInDegrees);
 
             // Handle first measurement
             if (!isInitialized)
             {
                 lastUpdateTime = timestamp;
-                var (accRoll, accPitch) = CalculateAccelerometerAngles(accXg, accYg, accZg);
+                var (accRoll, accPitch) = CalculateAccelerometerAngles(cleanAccX, cleanAccY, cleanAccZ);
 
                 state[0, 0] = accRoll;           // roll in radians
                 state[1, 0] = accPitch;          // pitch in radians
@@ -57,6 +86,7 @@ namespace OpenDataDisc.UI.Filter
             }
 
             double dt = timestamp - lastUpdateTime;
+            //dt = Math.Min(dt, 0.1); // Limit maximum dt to 100ms to prevent huge jumps
             if (dt <= 0) return (state[0, 0] * RAD_TO_DEG, state[1, 0] * RAD_TO_DEG);
 
             // EKF Prediction Step
@@ -67,11 +97,11 @@ namespace OpenDataDisc.UI.Filter
 
             // Create measurement vector
             var measurement = Matrix<double>.Build.Dense(6, 1);
-            measurement[0, 0] = accXg;      // X acceleration in Gs
-            measurement[1, 0] = accYg;      // Y acceleration in Gs
-            measurement[2, 0] = accZg;      // Z acceleration in Gs
-            measurement[3, 0] = gyroXrad;   // X angular rate in rad/s
-            measurement[4, 0] = gyroYrad;   // Y angular rate in rad/s
+            measurement[0, 0] = cleanAccX;
+            measurement[1, 0] = cleanAccY;
+            measurement[2, 0] = cleanAccZ;
+            measurement[3, 0] = gyroXrad;
+            measurement[4, 0] = gyroYrad;
 
             // EKF Update Step
             var H = CalculateMeasurementJacobian(predictedState);
@@ -79,18 +109,121 @@ namespace OpenDataDisc.UI.Filter
             var R = CalculateMeasurementNoise(dt);
 
             var innovation = measurement - predictedMeasurement;
+
+            // Validate innovation - if too large, increase measurement noise
+            if (innovation.L2Norm() > 2.0)
+            {
+                R = R * (innovation.L2Norm() / 2.0);
+            }
+
             var S = H * errorCovariance * H.Transpose() + R;
             var K = errorCovariance * H.Transpose() * S.Inverse();
 
-            state = predictedState + K * innovation;
+            // Update state with innovation checking
+            var stateUpdate = K * innovation;
+            if (IsValidStateUpdate(stateUpdate))
+            {
+                state = predictedState + stateUpdate;
+            }
+            else
+            {
+                state = predictedState;
+            }
+
+            // Ensure angles stay within valid range
+            state[0, 0] = ClampAngle(state[0, 0]);
+            state[1, 0] = ClampAngle(state[1, 0]);
+
             var I = Matrix<double>.Build.DenseIdentity(4);
             errorCovariance = (I - K * H) * errorCovariance;
 
             lastUpdateTime = timestamp;
 
-            // Return angles in degrees
             return (state[0, 0] * RAD_TO_DEG, state[1, 0] * RAD_TO_DEG);
         }
+
+        private bool ValidateAccelerometerReadings(double accX, double accY, double accZ,
+            out double cleanAccX, out double cleanAccY, out double cleanAccZ)
+        {
+            cleanAccX = accX;
+            cleanAccY = accY;
+            cleanAccZ = accZ;
+
+            // Check for NaN or Infinity
+            if (double.IsNaN(accX) || double.IsNaN(accY) || double.IsNaN(accZ) ||
+                double.IsInfinity(accX) || double.IsInfinity(accY) || double.IsInfinity(accZ))
+            {
+                return false;
+            }
+
+            // Calculate total acceleration magnitude
+            double magnitude = Math.Sqrt(accX * accX + accY * accY + accZ * accZ);
+
+            // Check if magnitude is reasonable (should be close to 1G when stationary)
+            if (magnitude < 0.5 || magnitude > 1.5)
+            {
+                return false;
+            }
+
+            // Normalize readings if they're valid but not exactly 1G
+            cleanAccX = accX / magnitude;
+            cleanAccY = accY / magnitude;
+            cleanAccZ = accZ / magnitude;
+
+            return true;
+        }
+
+        private double CleanGyroReading(double gyroReading, bool inDegrees)
+        {
+            // Convert to rad/s if needed
+            double gyroRad = inDegrees ? gyroReading * DEG_TO_RAD : gyroReading;
+
+            // Limit maximum gyro rate (e.g., ±20 rad/s or about ±1145 deg/s)
+            double maxRate = 20.0;
+            return Math.Clamp(gyroRad, -maxRate, maxRate);
+        }
+
+        private (double X, double Y, double Z) CalculateAverageAccelerometer()
+        {
+            if (accHistory.Count == 0)
+                return (0, 0, 1);  // Default to gravity along Z-axis
+
+            double sumX = 0, sumY = 0, sumZ = 0;
+            foreach (var (x, y, z) in accHistory)
+            {
+                sumX += x;
+                sumY += y;
+                sumZ += z;
+            }
+
+            return (
+                sumX / accHistory.Count,
+                sumY / accHistory.Count,
+                sumZ / accHistory.Count
+            );
+        }
+
+        private bool IsValidStateUpdate(Matrix<double> update)
+        {
+            // Check if any state updates are too large
+            for (int i = 0; i < update.RowCount; i++)
+            {
+                if (Math.Abs(update[i, 0]) > Math.PI)  // More than 180 degrees change
+                    return false;
+            }
+            return true;
+        }
+
+        private double ClampAngle(double angle)
+        {
+            // Clamp angle to valid range (-MAX_VALID_ANGLE to +MAX_VALID_ANGLE)
+            return Math.Clamp(angle, -MAX_VALID_ANGLE, MAX_VALID_ANGLE);
+        }
+
+
+
+
+        
 
         public (double RollDegrees, double PitchDegrees, double RollRateDegPerSec, double PitchRateDegPerSec) GetStateInDegrees()
         {
