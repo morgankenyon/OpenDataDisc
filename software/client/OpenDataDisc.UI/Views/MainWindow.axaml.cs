@@ -50,6 +50,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // disable mouse interaction by default
         sensorPlot.UserInputProcessor.Disable();
 
+        var ekf = new IMUExtendedKalmanFilter(
+            gyroInDegrees: true,
+            processNoiseScale: 0.001,
+            measurementNoise: 0.1
+        );
+
         //how often we should check for new data
         _addNewDataTimer = new DispatcherTimer
         {
@@ -61,7 +67,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             if (queue.TryDequeue(out SensorData sensorData))
             {
                 var discConfig = MainWindowViewModel.discConfiguration!;
-                var imuMeasurement = new ImuMeasurement
+                var measurement = new ImuMeasurement
                 {
                     Timestamp = sensorData.Date,
                     AccelX = sensorData.AccX - (1 - discConfig.AccXOffset),
@@ -72,7 +78,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     GyroZ = sensorData.GyroZ - discConfig.GyroZOffset,
                 };
 
-                var newState = _imuProcessor.ProcessMeasurement(imuMeasurement);
+                //var timestamp = DateTime.Now;
+                //var (accX, accY, accZ) = ReadAccelerometer();
+                //var (gyroX, gyroY) = ReadGyroscope();
+
+                var (roll, pitch) = ekf.Update(measurement.Timestamp,
+                    measurement.AccelX,
+                    measurement.AccelY,
+                    measurement.AccelZ,
+                    measurement.GyroX,
+                    measurement.GyroY);
+                Console.WriteLine($"Roll: {roll * 180 / Math.PI}°, Pitch: {pitch * 180 / Math.PI}°");
+
+                var newState = _imuProcessor.ProcessMeasurement(measurement);
 
                 accXStreamer.Add(newState.Roll * 100 / Math.PI);
                 accYStreamer.Add(newState.Pitch * 100 / Math.PI);

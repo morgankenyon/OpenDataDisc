@@ -16,3 +16,18 @@
 https://github.com/dotnet-bluetooth-le/dotnet-bluetooth-le/
 
 https://github.com/microsoft/Windows-universal-samples/tree/main/Samples/BluetoothLE
+
+## IMU Configuration
+
+* deviceId- EEA4022B513B
+* date - 638661079975144349
+* accXOffset: 0.995585260158052
+* accYOffset:  0.988363884404272
+* accZOffset:  0.993887001525856
+* gyroXOffset:  2.6413647707351
+* gyroYOffset: -3.84456837153482
+* gyroZOffset: -3.52810129481637
+
+
+
+
