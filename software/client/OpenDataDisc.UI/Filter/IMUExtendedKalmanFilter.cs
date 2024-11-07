@@ -23,7 +23,9 @@ namespace OpenDataDisc.UI.Filter
         private const int MOVING_AVERAGE_LENGTH = 1;
         private Queue<(double X, double Y, double Z)> accHistory;
 
-        public IMUExtendedKalmanFilter(bool gyroInDegrees = true, double processNoiseScale = 0.1, double measurementNoise = 0.1)
+        public IMUExtendedKalmanFilter(bool gyroInDegrees = true,
+            double processNoiseScale = 0.1,
+            double measurementNoise = 0.1)
         {
             // Initialize state vector [roll, pitch, rollRate, pitchRate] (all in radians)
             state = Matrix<double>.Build.Dense(4, 1);
@@ -52,14 +54,14 @@ namespace OpenDataDisc.UI.Filter
             }
 
             // Calculate magnitude but don't normalize unless really necessary
-            double magnitude = Math.Sqrt(accXg * accXg + accYg * accYg + accZg * accZg);
-            if (magnitude < 0.5 || magnitude > 1.5)
-            {
-                // Only normalize if significantly off from 1G
-                accXg /= magnitude;
-                accYg /= magnitude;
-                accZg /= magnitude;
-            }
+            //double magnitude = Math.Sqrt(accXg * accXg + accYg * accYg + accZg * accZg);
+            //if (magnitude < 0.5 || magnitude > 1.5)
+            //{
+            //    // Only normalize if significantly off from 1G
+            //    accXg /= magnitude;
+            //    accYg /= magnitude;
+            //    accZg /= magnitude;
+            //}
 
             // Update moving average
             accHistory.Enqueue((accXg, accYg, accZg));

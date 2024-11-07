@@ -17,13 +17,17 @@ namespace OpenDataDisc.UI.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
-    //readonly DataStreamer rollAngleStreamer;
-    readonly DataStreamer rawXAngleStreamer;
-    readonly DataStreamer magnitudeStreamer;
+    readonly DataStreamer rollAngleStreamer;
+    //readonly DataStreamer pitchAngleStreamer;
+    readonly DataStreamer accXStreamer;
+    readonly DataStreamer rollTrackerStreamer;
+    //readonly DataStreamer magnitudeStreamer;
     readonly DataStreamer gyroYStreamer;
     private DispatcherTimer _addNewDataTimer;
     private DispatcherTimer _updatePlotTimer;
     //private readonly ImuProcessor _imuProcessor = new ImuProcessor();
+    private double previousRoll;
+    private int rollTracker;
     public MainWindow()
     {
         InitializeComponent();
@@ -37,14 +41,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         AvaPlot sensorPlot = this.Find<AvaPlot>("SensorPlot");
 
-        //rollAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
-        rawXAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
-        magnitudeStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        rollAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        rollTrackerStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //magnitudeStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         //gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
 
-        //rollAngleStreamer.ViewScrollLeft();
-        rawXAngleStreamer.ViewScrollLeft();
-        magnitudeStreamer.ViewScrollLeft();
+        rollAngleStreamer.ViewScrollLeft();
+        accXStreamer.ViewScrollLeft();
+        rollTrackerStreamer.ViewScrollLeft();
+        //magnitudeStreamer.ViewScrollLeft();
         //gyroXStreamer.ViewScrollLeft();
         //gyroYStreamer.ViewScrollLeft();
 
@@ -53,7 +59,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         var ekf = new IMUExtendedKalmanFilter(
             gyroInDegrees: true,
-            processNoiseScale: 0.001,
+            processNoiseScale: 0.1,
             measurementNoise: 0.1
         );
 
@@ -89,6 +95,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     measurement.AccelZ,
                     measurement.GyroX,
                     measurement.GyroY);
+
+                if (roll == previousRoll)
+                {
+                    rollTracker++;
+                }
+                else
+                {
+                    rollTracker = 0;
+                    previousRoll = roll;
+                }
+
+
                 //Console.WriteLine($"Roll: {roll * 180 / Math.PI}°, Pitch: {pitch * 180 / Math.PI}°");
 
                 //var newState = _imuProcessor.ProcessMeasurement(measurement);
@@ -98,8 +116,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     + measurement.AccelZ * measurement.AccelZ);
                 Console.WriteLine($"Acc Magnitude: {magnitude:F3}G");
 
-                //rollAngleStreamer.Add(roll);
-                rawXAngleStreamer.Add(measurement.AccelX);
+                rollAngleStreamer.Add(roll);
+                accXStreamer.Add(measurement.AccelX);
+                rollTrackerStreamer.Add(rollTracker);
                 //magnitudeStreamer.Add(magnitude);
                 //gyroXStreamer.Add(sensorData.GyroX);
                 //gyroYStreamer.Add(sensorData.GyroY);
@@ -124,9 +143,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
          };
         _updatePlotTimer.Tick += (s, e) =>
          {
-             if (rawXAngleStreamer.HasNewData)
+             if (rollAngleStreamer.HasNewData)
              {
-                 sensorPlot.Plot.Title($"Processed {rawXAngleStreamer.Data.CountTotal:N0} points");
+                 sensorPlot.Plot.Title($"Processed {rollAngleStreamer.Data.CountTotal:N0} points");
                  sensorPlot.Refresh();
              }
          };
