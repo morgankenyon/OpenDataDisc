@@ -42,14 +42,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         AvaPlot sensorPlot = this.Find<AvaPlot>("SensorPlot");
 
         rollAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
-        accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
-        rollTrackerStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //rollTrackerStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         //magnitudeStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
         //gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
 
         rollAngleStreamer.ViewScrollLeft();
-        accXStreamer.ViewScrollLeft();
-        rollTrackerStreamer.ViewScrollLeft();
+        //accXStreamer.ViewScrollLeft();
+        //rollTrackerStreamer.ViewScrollLeft();
         //magnitudeStreamer.ViewScrollLeft();
         //gyroXStreamer.ViewScrollLeft();
         //gyroYStreamer.ViewScrollLeft();
@@ -59,7 +59,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         var ekf = new IMUExtendedKalmanFilter(
             gyroInDegrees: true,
-            processNoiseScale: 0.1,
+            processNoiseScale: 0.001,
             measurementNoise: 0.1
         );
 
@@ -76,7 +76,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 var discConfig = MainWindowViewModel.discConfiguration!;
                 var measurement = new ImuMeasurement
                 {
-                    Timestamp = sensorData.Date,
+                    Timestamp = sensorData.CycleCount,
                     AccelX = sensorData.AccX - (1 - discConfig.AccXOffset),
                     AccelY = sensorData.AccY - (1 - discConfig.AccYOffset),
                     AccelZ = sensorData.AccZ - (1 - discConfig.AccZOffset),
@@ -89,7 +89,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 //var (accX, accY, accZ) = ReadAccelerometer();
                 //var (gyroX, gyroY) = ReadGyroscope();
 
-                var (roll, pitch) = ekf.Update(measurement.Timestamp,
+                var (roll, pitch, lastUpdateTime) = ekf.Update(measurement.Timestamp,
                     measurement.AccelX,
                     measurement.AccelY,
                     measurement.AccelZ,
@@ -117,8 +117,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 Console.WriteLine($"Acc Magnitude: {magnitude:F3}G");
 
                 rollAngleStreamer.Add(roll);
-                accXStreamer.Add(measurement.AccelX);
-                rollTrackerStreamer.Add(rollTracker);
+                //accXStreamer.Add((measurement.AccelX + measurement.AccelY) * 100);
+                //rollTrackerStreamer.Add(measurement.Timestamp);
                 //magnitudeStreamer.Add(magnitude);
                 //gyroXStreamer.Add(sensorData.GyroX);
                 //gyroYStreamer.Add(sensorData.GyroY);
@@ -139,7 +139,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         //how often we refresh the plot
         _updatePlotTimer = new DispatcherTimer
          {
-             Interval = TimeSpan.FromMilliseconds(50)
+             Interval = TimeSpan.FromMilliseconds(1000)
          };
         _updatePlotTimer.Tick += (s, e) =>
          {

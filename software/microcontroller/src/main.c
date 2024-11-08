@@ -303,7 +303,7 @@ static int notify_adc(IMUData data)
     //used to calculate the length needed to create the buffer
     int len = snprintf(NULL, 0, "%f,%f,%f;%f,%f,%f;%" PRIu32,
         data.aData.AccX,
-        data.aData.AccX,
+        data.aData.AccY,
         data.aData.AccZ,
         data.gData.GyroX,
         data.gData.GyroY,
@@ -321,6 +321,9 @@ static int notify_adc(IMUData data)
         data.gData.GyroY,
         data.gData.GyroZ,
         data.cycleCount);
+
+    //printk("Cycle count: %u\n", data.cycleCount);
+    printk("string: %s\n", buffer);
 
     int rc;
     rc = bt_gatt_notify(NULL, &custom_srv.attrs[2], &buffer, sizeof(buffer));

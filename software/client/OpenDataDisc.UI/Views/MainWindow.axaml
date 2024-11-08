@@ -62,6 +62,7 @@
 				<TextBlock Text="{Binding CountText}" />
 				<TextBlock Text="{Binding MessageRateText}" />
 				<TextBlock Text="{Binding ChannelCountText}" />
+				<TextBlock Text="{Binding QueueCountText}" />
 			</StackPanel>
 		</Border>
 

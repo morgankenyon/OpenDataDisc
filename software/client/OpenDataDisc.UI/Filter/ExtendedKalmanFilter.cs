@@ -9,7 +9,7 @@ namespace OpenDataDisc.UI.Filter
 {
     public class ImuMeasurement
     {
-        public long Timestamp { get; set; }
+        public uint Timestamp { get; set; }
         public double AccelX { get; set; }
         public double AccelY { get; set; }
         public double AccelZ { get; set; }

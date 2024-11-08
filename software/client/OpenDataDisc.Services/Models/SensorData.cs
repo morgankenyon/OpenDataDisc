@@ -6,7 +6,7 @@ namespace OpenDataDisc.Services.Models
     {
         public SensorData(
             long date,
-            long cycleCount,
+            uint cycleCount,
             float accX,
             float accY,
             float accZ,
@@ -59,7 +59,7 @@ namespace OpenDataDisc.Services.Models
 
             if (measurements.Length >= 3)
             {
-                if (long.TryParse(measurements[2], out var cycleCount))
+                if (uint.TryParse(measurements[2], out var cycleCount))
                 {
                     CycleCount = cycleCount;
                 }
@@ -67,7 +67,7 @@ namespace OpenDataDisc.Services.Models
         }
 
         public long Date { get; }
-        public long CycleCount { get; }
+        public uint CycleCount { get; }
         public float AccX { get; }
         public float AccY { get; }
         public float AccZ { get; }
