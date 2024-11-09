@@ -36,7 +36,7 @@ namespace OpenDataDisc.Services.Models
 
         public override string? ToString()
         {
-            return $"{Date}, {CycleCount}, Ax: {AccX}, Ay: {AccY}, Az: {AccZ}, Gx: {GyroX}, Gy: {GyroY}, Gz: {GyroZ}";
+            return $"{Date}, {CycleCount}, {UptimeMs}, Ax: {AccX}, Ay: {AccY}, Az: {AccZ}, Gx: {GyroX}, Gy: {GyroY}, Gz: {GyroZ}";
         }
 
         public SensorData(string sensorString)
@@ -59,7 +59,15 @@ namespace OpenDataDisc.Services.Models
 
             if (measurements.Length >= 3)
             {
-                if (uint.TryParse(measurements[2], out var cycleCount))
+                if (uint.TryParse(measurements[2], out var uptimeMs))
+                {
+                    UptimeMs = uptimeMs;
+                }
+            }
+
+            if (measurements.Length >= 4)
+            {
+                if (uint.TryParse(measurements[3], out var cycleCount))
                 {
                     CycleCount = cycleCount;
                 }
@@ -67,6 +75,7 @@ namespace OpenDataDisc.Services.Models
         }
 
         public long Date { get; }
+        public long UptimeMs { get; set; }
         public uint CycleCount { get; }
         public float AccX { get; }
         public float AccY { get; }

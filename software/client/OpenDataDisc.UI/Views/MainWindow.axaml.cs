@@ -66,7 +66,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         //how often we should check for new data
         _addNewDataTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(10)
+            Interval = TimeSpan.FromMilliseconds(5)
         };
         _addNewDataTimer.Tick += (s, e) =>
         {
@@ -83,13 +83,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     GyroX = sensorData.GyroX - discConfig.GyroXOffset,
                     GyroY = sensorData.GyroY - discConfig.GyroYOffset,
                     GyroZ = sensorData.GyroZ - discConfig.GyroZOffset,
+                    UptimeMs = sensorData.UptimeMs
                 };
 
                 //var timestamp = DateTime.Now;
                 //var (accX, accY, accZ) = ReadAccelerometer();
                 //var (gyroX, gyroY) = ReadGyroscope();
 
-                var (roll, pitch, lastUpdateTime) = ekf.Update(measurement.Timestamp,
+                var (roll, pitch, lastUpdateTime) = ekf.Update(measurement.UptimeMs,
                     measurement.AccelX,
                     measurement.AccelY,
                     measurement.AccelZ,
@@ -139,7 +140,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         //how often we refresh the plot
         _updatePlotTimer = new DispatcherTimer
          {
-             Interval = TimeSpan.FromMilliseconds(1000)
+             Interval = TimeSpan.FromMilliseconds(100)
          };
         _updatePlotTimer.Tick += (s, e) =>
          {

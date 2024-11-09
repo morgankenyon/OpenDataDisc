@@ -13,14 +13,14 @@ namespace OpenDataDisc.UI.Filter
         private Matrix<double> errorCovariance;    // Error covariance
         private readonly double processNoiseScale; // Base process noise scaling factor
         private readonly double measurementNoise;  // Measurement noise
-        private uint lastUpdateTime;           // Time of last update
+        private long lastUpdateTime;           // Time of last update
         private bool isInitialized;               // Flag to handle first measurement
         private const double DEG_TO_RAD = Math.PI / 180.0;
         private const double RAD_TO_DEG = 180.0 / Math.PI;
         private readonly bool gyroInDegrees;      // Flag indicating if gyro measurements are in degrees/sec
 
         // Shorter moving average for better responsiveness
-        private const int MOVING_AVERAGE_LENGTH = 1;
+        private const int MOVING_AVERAGE_LENGTH = 3;
         private Queue<(double X, double Y, double Z)> accHistory;
 
         public IMUExtendedKalmanFilter(bool gyroInDegrees = true,
@@ -41,8 +41,8 @@ namespace OpenDataDisc.UI.Filter
             accHistory = new Queue<(double X, double Y, double Z)>();
         }
 
-        public (double RollDegrees, double PitchDegrees, uint timestamp) Update(
-            uint timestamp,
+        public (double RollDegrees, double PitchDegrees, long timestamp) Update(
+            long timestamp,
             double accXg, double accYg, double accZg,  // Accelerometer readings in Gs
             double gyroX, double gyroY)                // Gyro readings in deg/s or rad/s based on constructor flag
         {
@@ -93,7 +93,7 @@ namespace OpenDataDisc.UI.Filter
                 return (accRoll * RAD_TO_DEG, accPitch * RAD_TO_DEG, lastUpdateTime);
             }
 
-            uint dt = timestamp - lastUpdateTime;
+            long dt = timestamp - lastUpdateTime;
             if (dt <= 0)
             {
                 return (state[0, 0] * RAD_TO_DEG, state[1, 0] * RAD_TO_DEG, lastUpdateTime);
@@ -133,7 +133,7 @@ namespace OpenDataDisc.UI.Filter
             return (state[0, 0] * RAD_TO_DEG, state[1, 0] * RAD_TO_DEG, lastUpdateTime);
         }
 
-        private Matrix<double> PredictState(double dt)
+        private Matrix<double> PredictState(long dt)
         {
             var predictedState = Matrix<double>.Build.Dense(4, 1);
 
@@ -183,7 +183,7 @@ namespace OpenDataDisc.UI.Filter
             return H;
         }
 
-        private Matrix<double> CalculateStateTransitionJacobian(double dt)
+        private Matrix<double> CalculateStateTransitionJacobian(long dt)
         {
             var F = Matrix<double>.Build.DenseIdentity(4);
             F[0, 2] = dt;
@@ -191,20 +191,21 @@ namespace OpenDataDisc.UI.Filter
             return F;
         }
 
-        private Matrix<double> CalculateProcessNoise(double dt)
+        private Matrix<double> CalculateProcessNoise(long dt)
         {
             var Q = Matrix<double>.Build.Dense(4, 4);
-
+            long dt2 = dt * dt;
+            double dtScalingFactor = 1;
             // Simplified process noise model
-            Q[0, 0] = dt * dt;  // roll
-            Q[1, 1] = dt * dt;  // pitch
-            Q[2, 2] = dt;       // roll rate
-            Q[3, 3] = dt;       // pitch rate
+            Q[0, 0] = dtScalingFactor * dt2;  // roll
+            Q[1, 1] = dtScalingFactor * dt2;  // pitch
+            Q[2, 2] = dtScalingFactor * dt;       // roll rate
+            Q[3, 3] = dtScalingFactor * dt;       // pitch rate
 
             return Q * processNoiseScale;
         }
 
-        private Matrix<double> CalculateMeasurementNoise(double dt)
+        private Matrix<double> CalculateMeasurementNoise(long dt)
         {
             // Simplified measurement noise
             return Matrix<double>.Build.DenseIdentity(6) * measurementNoise;
