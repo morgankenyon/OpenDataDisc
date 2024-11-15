@@ -53,3 +53,11 @@ Settings:
 ```
 
 Config values:
+* deviceId - EEA4022B513B
+* date - 638672308791295849
+* accXOffset: 0.99706569891014
+* accYOffset: 0.99452281533601
+* accZOffset: 1.00053818889721
+* gyroXOffset: 2.94209580792638
+* gyroYOffset: -3.91825350030454
+* gyroZOffset: -3.55300648102979
