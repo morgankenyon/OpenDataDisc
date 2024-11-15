@@ -1,8 +1,15 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using ScottPlot.Plottables;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using TestKalman.Filters;
 
 namespace TestKalman.Views;
 
@@ -17,6 +24,17 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        var entryAssembly = Assembly.GetEntryAssembly().GetName().Name;
+        var uri = new Uri($"avares://{entryAssembly}/Assets/imuDataSimpleXAxisRock.json");
+        using var stream = AssetLoader.Open(uri);
+
+        // For text files:
+        using var reader = new StreamReader(stream);
+        string content = reader.ReadToEnd();
+
+        var sensorData = JsonSerializer.Deserialize<List<SensorData>>(content);
+        var imuData = TransformSensorData(sensorData);
+        
         double[] dataX = new double[] { 1, 2, 3, 4, 5 };
         double[] dataY = new double[] { 1, 4, 9, 16, 25 };
 
@@ -62,16 +80,33 @@ public partial class MainWindow : Window
             }
         };
         _updatePlotTimer.Start();
+    }
 
-        // Add a scatter plot
-        //AvaPlot1.Plot.Add.Scatter(dataX, dataY);
+    private List<IMUData> TransformSensorData(List<SensorData>? sensorDataList)
+    {
+        var dataList = new List<IMUData>();
 
-        //// Optionally customize the plot
-        //AvaPlot1.Plot.Title("My Plot");
-        //AvaPlot1.Plot.XLabel("X Axis");
-        //AvaPlot1.Plot.YLabel("Y Axis");
+        if (sensorDataList == null)
+            return dataList;
 
-        //// Refresh the plot to show changes
-        //AvaPlot1.Refresh();
+        var sensorData = sensorDataList.First();
+        foreach (var row in sensorData.rows)
+        {
+            if (row.Count == 8)
+            {
+                dataList.Add(new IMUData
+                {
+                    Timestamp = uint.Parse(row[1]),
+                    Ax = double.Parse(row[2]),
+                    Ay = double.Parse(row[3]),
+                    Az = double.Parse(row[4]),
+                    Gx = double.Parse(row[5]),
+                    Gy = double.Parse(row[6]),
+                    Gz = double.Parse(row[7])
+                });
+            }
+        }
+
+        return dataList;
     }
 }
