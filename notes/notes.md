@@ -16,3 +16,40 @@
 https://github.com/dotnet-bluetooth-le/dotnet-bluetooth-le/
 
 https://github.com/microsoft/Windows-universal-samples/tree/main/Samples/BluetoothLE
+
+## IMU Configuration
+
+Settings:
+```c
+    struct IMUSettings settings;
+    settings.accSampleRate = ACC_SR_13330Hz;
+    settings.accScale = ACC_SCALE_4G;
+    settings.accBandwidth = ACC_BANDWIDTH_50HZ;
+    settings.gyroSampleRate = GYRO_SR_1660Hz;
+    settings.gyroScale = GYRO_SCALE_250dps;
+    settings.gyroFullScale = GYRO_FULLSCALE_125dps_DISABLED;
+```
+
+Config values:
+* deviceId- EEA4022B513B
+* date - 638661079975144349
+* accXOffset: 0.995585260158052
+* accYOffset:  0.988363884404272
+* accZOffset:  0.993887001525856
+* gyroXOffset:  2.6413647707351
+* gyroYOffset: -3.84456837153482
+* gyroZOffset: -3.52810129481637
+
+
+Settings:
+```c
+    struct IMUSettings settings;
+    settings.accSampleRate = ACC_SR_208Hz;
+    settings.accScale = ACC_SCALE_2G;
+    settings.accBandwidth = ACC_BANDWIDTH_50HZ;
+    settings.gyroSampleRate = GYRO_SR_208Hz;
+    settings.gyroScale = GYRO_SCALE_250dps;
+    settings.gyroFullScale = GYRO_FULLSCALE_125dps_DISABLED;
+```
+
+Config values:

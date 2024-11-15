@@ -552,10 +552,10 @@ int main(void)
     }
 
     struct IMUSettings settings;
-    settings.accSampleRate = ACC_SR_13330Hz;
-    settings.accScale = ACC_SCALE_4G;
+    settings.accSampleRate = ACC_SR_208Hz;
+    settings.accScale = ACC_SCALE_2G;
     settings.accBandwidth = ACC_BANDWIDTH_50HZ;
-    settings.gyroSampleRate = GYRO_SR_1660Hz;
+    settings.gyroSampleRate = GYRO_SR_208Hz;
     settings.gyroScale = GYRO_SCALE_250dps;
     settings.gyroFullScale = GYRO_FULLSCALE_125dps_DISABLED;
 
