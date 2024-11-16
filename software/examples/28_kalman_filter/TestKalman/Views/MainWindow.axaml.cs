@@ -19,10 +19,12 @@ public partial class MainWindow : Window
     readonly ScottPlot.DataGenerators.RandomWalker walker = new(0);
     private DispatcherTimer _addNewDataTimer;
     private DispatcherTimer _updatePlotTimer;
+    private CombinedIMUKalmanFilter kalmanFilter;
 
     public MainWindow()
     {
         InitializeComponent();
+        kalmanFilter = new CombinedIMUKalmanFilter(processNoise: 0.001, measurementNoise: 0.1);
 
         var entryAssembly = Assembly.GetEntryAssembly().GetName().Name;
         var uri = new Uri($"avares://{entryAssembly}/Assets/imuDataSimpleXAxisRock.json");
@@ -33,7 +35,7 @@ public partial class MainWindow : Window
         string content = reader.ReadToEnd();
 
         var sensorData = JsonSerializer.Deserialize<List<SensorData>>(content);
-        var imuData = TransformSensorData(sensorData);
+        Queue<IMUData> imuQueue = TransformSensorData(sensorData);
         
         double[] dataX = new double[] { 1, 2, 3, 4, 5 };
         double[] dataY = new double[] { 1, 4, 9, 16, 25 };
@@ -50,19 +52,28 @@ public partial class MainWindow : Window
         };
         _addNewDataTimer.Tick += (s, e) =>
         {
-            int count = 5;
-            // add new sample data
-            var nextValue = walker.Next(count);
-            dataStreamer.AddRange(nextValue);
-            // slide marker to the left
-            AvaPlot1.Plot.GetPlottables<Marker>()
-                .ToList()
-                .ForEach(m => m.X -= count);
-            // remove off-screen marks
-            AvaPlot1.Plot.GetPlottables<Marker>()
-                .Where(m => m.X < 0)
-                .ToList()
-                .ForEach(m => AvaPlot1.Plot.Remove(m));
+
+            // Get IMU data packet including timestamp
+            //var imuData = getImuData();
+            if (imuQueue.TryDequeue(out IMUData imuData))
+            {
+
+                // Update Kalman filter with IMU data
+                var (filteredPitch, filteredRoll) = kalmanFilter.Update(imuData);
+                //int count = 5;
+                // add new sample data
+                //var nextValue = walker.Next(count);
+                dataStreamer.Add(filteredPitch);
+                // slide marker to the left
+                AvaPlot1.Plot.GetPlottables<Marker>()
+                    .ToList()
+                    .ForEach(m => m.X -= 1);
+                // remove off-screen marks
+                AvaPlot1.Plot.GetPlottables<Marker>()
+                    .Where(m => m.X < 0)
+                    .ToList()
+                    .ForEach(m => AvaPlot1.Plot.Remove(m));
+            }
         };
         _addNewDataTimer.Start();
 
@@ -82,9 +93,9 @@ public partial class MainWindow : Window
         _updatePlotTimer.Start();
     }
 
-    private List<IMUData> TransformSensorData(List<SensorData>? sensorDataList)
+    private Queue<IMUData> TransformSensorData(List<SensorData>? sensorDataList)
     {
-        var dataList = new List<IMUData>();
+        var dataList = new Queue<IMUData>();
 
         if (sensorDataList == null)
             return dataList;
@@ -94,7 +105,7 @@ public partial class MainWindow : Window
         {
             if (row.Count == 8)
             {
-                dataList.Add(new IMUData
+                dataList.Enqueue(new IMUData
                 {
                     Timestamp = uint.Parse(row[1]),
                     Ax = double.Parse(row[2]),
