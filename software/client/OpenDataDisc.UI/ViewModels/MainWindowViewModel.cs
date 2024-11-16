@@ -66,9 +66,17 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _messageRate, value);
     }
 
+    private int _queueCount;
+    public int QueueCount
+    {
+        get => _queueCount;
+        set => this.RaiseAndSetIfChanged(ref _queueCount, value);
+    }
+
     public string CountText => $"Messages received: {_messageCount}";
     public string MessageRateText => $"Message Rate: {_messageRate} msg/sec";
     public string ChannelCountText => $"Channel Count: {SensorChannel.Reader.Count}";
+    public string QueueCountText => $"Queue size: {_queueCount}";
 
     //interaction to launch bluetooth selector window
     public Interaction<BluetoothSelectorViewModel, SelectedDeviceViewModel?> ShowBluetoothDialog { get; }
@@ -85,6 +93,7 @@ public class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _messageRateTokenSource;
 
     public static readonly ConcurrentQueue<SensorData> graphingQueue = new ConcurrentQueue<SensorData>();
+    public static DiscConfigurationData? discConfiguration;
     
     public MainWindowViewModel(ISensorService sensorService,
         IConfigurationService configurationService)
@@ -135,6 +144,9 @@ public class MainWindowViewModel : ViewModelBase
 
         this.WhenAnyValue(x => x.MessageRate)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(MessageRateText)));
+
+        this.WhenAnyValue(x => x.QueueCount)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(QueueCountText)));
 
         this.WhenAnyValue(x => x.CurrentState)
             .Subscribe(_ => ControlMessageRateCalculation());
@@ -233,6 +245,7 @@ public class MainWindowViewModel : ViewModelBase
     private void UpdateCount()
     {
         this.MessageCount++;
+        this.QueueCount = graphingQueue.Count;
     }
 
     private async void ListenToDevice(SelectedDeviceViewModel selectedDevice, CancellationToken token)
@@ -294,7 +307,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var deviceId = _selectedDevice.Device.Id;
             //check for configuration
-            var hasConfiguration = await DoesDeviceHaveConfiguration(deviceId, token);
+            var (hasConfiguration, configuration) = await DoesDeviceHaveConfiguration(deviceId, token);
 
             //if no configuration, open window for configuration
             if (!hasConfiguration)
@@ -307,6 +320,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 if (result != null)
                 {
+                    discConfiguration = configuration;
                     await _configurationService.SaveDeviceConfiguration(result, token);
                 }
 
@@ -315,17 +329,21 @@ public class MainWindowViewModel : ViewModelBase
                 //change back to throw mode
                 await SendMessageToDevice(chars, ThrowMode);
             }
+            else
+            {
+                discConfiguration = configuration;
+            }
         }
     }
-    private async Task<bool> DoesDeviceHaveConfiguration(string deviceId, CancellationToken token)
+    private async Task<(bool, DiscConfigurationData?)> DoesDeviceHaveConfiguration(string deviceId, CancellationToken token)
     {
         if (_selectedDevice != null)
         {
             var deviceConfiguration = await _configurationService.SearchForDeviceConfiguration(_selectedDevice.Device.Id, token);
 
-            return deviceConfiguration != null;
+            return (deviceConfiguration != null, deviceConfiguration);
         }
-        return false;
+        return (false, null);
     }
 
     private async Task SendMessageToDevice(GattCharacteristic chars, string message)

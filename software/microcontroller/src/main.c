@@ -14,7 +14,7 @@
 #include <zephyr/bluetooth/uuid.h>
 
 //General Macros and variables
-#define THROW_SLEEP_TIME_MS                 100
+#define THROW_SLEEP_TIME_MS                 10
 #define CONFIG_SLEEP_TIME_MS                10
 #define UNCONNECTED_SLEEP_TIME_MS           4000
 #define I2C_NODE        DT_NODELABEL(arduino_i2c)
@@ -155,6 +155,7 @@ typedef struct IMUData
     AcceloremeterData aData;
     GyroData gData;
     uint32_t cycleCount;
+    int64_t uptime;
 } IMUData;
 
 enum OperationMode operation_mode;
@@ -223,6 +224,11 @@ BT_GATT_SERVICE_DEFINE(custom_srv,
 uint32_t get_cycle_count()
 {
     return k_cycle_get_32();
+}
+
+int64_t get_uptime()
+{
+    return k_uptime_get();
 }
 
 
@@ -301,26 +307,31 @@ int init_ble(void)
 static int notify_adc(IMUData data)
 {
     //used to calculate the length needed to create the buffer
-    int len = snprintf(NULL, 0, "%f,%f,%f;%f,%f,%f;%" PRIu32,
-        data.aData.AccX,
-        data.aData.AccX,
-        data.aData.AccZ,
-        data.gData.GyroX,
-        data.gData.GyroY,
-        data.gData.GyroZ,
-        data.cycleCount);
-
-    //Different number of floats led to different values here than I would expect
-    //need to dig optimizing this
-    char buffer[len];
-    snprintf(buffer, sizeof buffer, "%f,%f,%f;%f,%f,%f;%" PRIu32,
+    int len = snprintf(NULL, 0, "%f,%f,%f;%f,%f,%f;%lld;%" PRIu32,
         data.aData.AccX,
         data.aData.AccY,
         data.aData.AccZ,
         data.gData.GyroX,
         data.gData.GyroY,
         data.gData.GyroZ,
+        data.uptime,
         data.cycleCount);
+
+    //Different number of floats led to different values here than I would expect
+    //need to dig optimizing this
+    char buffer[len];
+    snprintf(buffer, sizeof buffer, "%f,%f,%f;%f,%f,%f;%lld;%" PRIu32,
+        data.aData.AccX,
+        data.aData.AccY,
+        data.aData.AccZ,
+        data.gData.GyroX,
+        data.gData.GyroY,
+        data.gData.GyroZ,
+        data.uptime,
+        data.cycleCount);
+
+    //printk("Cycle count: %u\n", data.cycleCount);
+    printk("string: %s\n", buffer);
 
     int rc;
     rc = bt_gatt_notify(NULL, &custom_srv.attrs[2], &buffer, sizeof(buffer));
@@ -509,6 +520,7 @@ IMUData pull_imu_data(IMUSettings settings)
     }
     //place as close as I can to actual interaction with my IMU
     //not sure if placing it before might be more accurate
+    int64_t uptime = get_uptime();
     uint32_t cycle_count = get_cycle_count();
 
     //get gyro data
@@ -519,6 +531,7 @@ IMUData pull_imu_data(IMUSettings settings)
     imuData.gData = gdata;
     imuData.aData = adata;
     imuData.cycleCount = cycle_count;
+    imuData.uptime = uptime;
 
     return imuData;
 }
@@ -553,7 +566,7 @@ int main(void)
 
     struct IMUSettings settings;
     settings.accSampleRate = ACC_SR_13330Hz;
-    settings.accScale = ACC_SCALE_4G;
+    settings.accScale = ACC_SCALE_2G;
     settings.accBandwidth = ACC_BANDWIDTH_50HZ;
     settings.gyroSampleRate = GYRO_SR_1660Hz;
     settings.gyroScale = GYRO_SCALE_250dps;

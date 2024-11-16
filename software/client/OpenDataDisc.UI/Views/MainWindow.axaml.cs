@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using OpenDataDisc.Services.Models;
+using OpenDataDisc.UI.Filter;
 using OpenDataDisc.UI.Models;
 using OpenDataDisc.UI.ViewModels;
 using ReactiveUI;
@@ -16,12 +17,17 @@ namespace OpenDataDisc.UI.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
+    readonly DataStreamer rollAngleStreamer;
+    //readonly DataStreamer pitchAngleStreamer;
     readonly DataStreamer accXStreamer;
-    readonly DataStreamer accYStreamer;
-    readonly DataStreamer gyroXStreamer;
+    readonly DataStreamer rollTrackerStreamer;
+    //readonly DataStreamer magnitudeStreamer;
     readonly DataStreamer gyroYStreamer;
     private DispatcherTimer _addNewDataTimer;
     private DispatcherTimer _updatePlotTimer;
+    //private readonly ImuProcessor _imuProcessor = new ImuProcessor();
+    private double previousRoll;
+    private int rollTracker;
     public MainWindow()
     {
         InitializeComponent();
@@ -35,35 +41,88 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         AvaPlot sensorPlot = this.Find<AvaPlot>("SensorPlot");
 
-        accXStreamer = sensorPlot.Plot.Add.DataStreamer(300);
-        accYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
-        gyroXStreamer = sensorPlot.Plot.Add.DataStreamer(300);
-        gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
+        rollAngleStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //accXStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //rollTrackerStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //magnitudeStreamer = sensorPlot.Plot.Add.DataStreamer(1000);
+        //gyroYStreamer = sensorPlot.Plot.Add.DataStreamer(300);
 
-        accXStreamer.ViewScrollLeft();
-        accYStreamer.ViewScrollLeft();
-        gyroXStreamer.ViewScrollLeft();
-        gyroYStreamer.ViewScrollLeft();
+        rollAngleStreamer.ViewScrollLeft();
+        //accXStreamer.ViewScrollLeft();
+        //rollTrackerStreamer.ViewScrollLeft();
+        //magnitudeStreamer.ViewScrollLeft();
+        //gyroXStreamer.ViewScrollLeft();
+        //gyroYStreamer.ViewScrollLeft();
 
         // disable mouse interaction by default
         sensorPlot.UserInputProcessor.Disable();
 
+        var ekf = new IMUExtendedKalmanFilter(
+            gyroInDegrees: true,
+            processNoiseScale: 0.001,
+            measurementNoise: 0.1
+        );
+
         //how often we should check for new data
         _addNewDataTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(10)
+            Interval = TimeSpan.FromMilliseconds(5)
         };
         _addNewDataTimer.Tick += (s, e) =>
         {
             ConcurrentQueue<SensorData> queue = MainWindowViewModel.graphingQueue;
-            if (queue.TryDequeue(out SensorData result))
+            if (queue.TryDequeue(out SensorData sensorData))
             {
+                var discConfig = MainWindowViewModel.discConfiguration!;
+                var measurement = new ImuMeasurement
+                {
+                    Timestamp = sensorData.CycleCount,
+                    AccelX = sensorData.AccX - (1 - discConfig.AccXOffset),
+                    AccelY = sensorData.AccY - (1 - discConfig.AccYOffset),
+                    AccelZ = sensorData.AccZ - (1 - discConfig.AccZOffset),
+                    GyroX = sensorData.GyroX - discConfig.GyroXOffset,
+                    GyroY = sensorData.GyroY - discConfig.GyroYOffset,
+                    GyroZ = sensorData.GyroZ - discConfig.GyroZOffset,
+                    UptimeMs = sensorData.UptimeMs
+                };
 
-                accXStreamer.Add(result.AccX);
-                accYStreamer.Add(result.AccY);
-                gyroXStreamer.Add(result.GyroX);
-                gyroYStreamer.Add(result.GyroY);
+                //var timestamp = DateTime.Now;
+                //var (accX, accY, accZ) = ReadAccelerometer();
+                //var (gyroX, gyroY) = ReadGyroscope();
 
+                var (roll, pitch, lastUpdateTime) = ekf.Update(measurement.UptimeMs,
+                    measurement.AccelX,
+                    measurement.AccelY,
+                    measurement.AccelZ,
+                    measurement.GyroX,
+                    measurement.GyroY);
+
+                if (roll == previousRoll)
+                {
+                    rollTracker++;
+                }
+                else
+                {
+                    rollTracker = 0;
+                    previousRoll = roll;
+                }
+
+
+                //Console.WriteLine($"Roll: {roll * 180 / Math.PI}°, Pitch: {pitch * 180 / Math.PI}°");
+
+                //var newState = _imuProcessor.ProcessMeasurement(measurement);
+
+                double magnitude = Math.Sqrt(measurement.AccelX * measurement.AccelX
+                    + measurement.AccelY * measurement.AccelY
+                    + measurement.AccelZ * measurement.AccelZ);
+                Console.WriteLine($"Acc Magnitude: {magnitude:F3}G");
+
+                rollAngleStreamer.Add(roll);
+                //accXStreamer.Add((measurement.AccelX + measurement.AccelY) * 100);
+                //rollTrackerStreamer.Add(measurement.Timestamp);
+                //magnitudeStreamer.Add(magnitude);
+                //gyroXStreamer.Add(sensorData.GyroX);
+                //gyroYStreamer.Add(sensorData.GyroY);
                 // slide marker to the left
                 sensorPlot.Plot.GetPlottables<Marker>()
                     .ToList()
@@ -81,13 +140,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         //how often we refresh the plot
         _updatePlotTimer = new DispatcherTimer
          {
-             Interval = TimeSpan.FromMilliseconds(50)
+             Interval = TimeSpan.FromMilliseconds(100)
          };
         _updatePlotTimer.Tick += (s, e) =>
          {
-             if (accXStreamer.HasNewData)
+             if (rollAngleStreamer.HasNewData)
              {
-                 sensorPlot.Plot.Title($"Processed {accXStreamer.Data.CountTotal:N0} points");
+                 sensorPlot.Plot.Title($"Processed {rollAngleStreamer.Data.CountTotal:N0} points");
                  sensorPlot.Refresh();
              }
          };
