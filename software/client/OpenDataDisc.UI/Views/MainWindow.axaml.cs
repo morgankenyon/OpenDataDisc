@@ -60,9 +60,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             {
 
                 accXStreamer.Add(result.AccX);
-                accYStreamer.Add(result.AccY);
-                gyroXStreamer.Add(result.GyroX);
-                gyroYStreamer.Add(result.GyroY);
+                //accYStreamer.Add(result.AccY);
+                //gyroXStreamer.Add(result.GyroX);
+                //gyroYStreamer.Add(result.GyroY);
 
                 // slide marker to the left
                 sensorPlot.Plot.GetPlottables<Marker>()

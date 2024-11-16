@@ -24,10 +24,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        kalmanFilter = new CombinedIMUKalmanFilter(processNoise: 0.001, measurementNoise: 0.1);
+        kalmanFilter = new CombinedIMUKalmanFilter(processNoise: 0.01, measurementNoise: 0.1);
 
         var entryAssembly = Assembly.GetEntryAssembly().GetName().Name;
-        var uri = new Uri($"avares://{entryAssembly}/Assets/imuDataSimpleXAxisRock.json");
+        var uri = new Uri($"avares://{entryAssembly}/Assets/imuDataSimplePositiveXAxisRock.json");
         using var stream = AssetLoader.Open(uri);
 
         // For text files:
@@ -57,9 +57,9 @@ public partial class MainWindow : Window
             //var imuData = getImuData();
             if (imuQueue.TryDequeue(out IMUData imuData))
             {
-
+                var normalizedImuData = NormalizeSensorData(imuData);
                 // Update Kalman filter with IMU data
-                var (filteredPitch, filteredRoll) = kalmanFilter.Update(imuData);
+                var (filteredPitch, filteredRoll) = kalmanFilter.Update(normalizedImuData);
                 //int count = 5;
                 // add new sample data
                 //var nextValue = walker.Next(count);
@@ -93,6 +93,17 @@ public partial class MainWindow : Window
         _updatePlotTimer.Start();
     }
 
+    private IMUData NormalizeSensorData(IMUData data)
+    {
+        data.Ax = data.Ax - (1 - 0.996665973625259);
+        data.Ay = data.Ay - (1 - 0.994011071627725);
+        data.Az = data.Az - (1 - 0.990970080305716);
+        data.Gx = data.Gx - 2.46650448292791;
+        data.Gy = data.Gy + 3.88024951026825;
+        data.Gz = data.Gz + 3.5213073808514;
+        return data;
+    }
+
     private Queue<IMUData> TransformSensorData(List<SensorData>? sensorDataList)
     {
         var dataList = new Queue<IMUData>();
@@ -103,17 +114,17 @@ public partial class MainWindow : Window
         var sensorData = sensorDataList.First();
         foreach (var row in sensorData.rows)
         {
-            if (row.Count == 8)
+            if (row.Count == 9)
             {
                 dataList.Enqueue(new IMUData
                 {
-                    Timestamp = uint.Parse(row[1]),
-                    Ax = double.Parse(row[2]),
-                    Ay = double.Parse(row[3]),
-                    Az = double.Parse(row[4]),
-                    Gx = double.Parse(row[5]),
-                    Gy = double.Parse(row[6]),
-                    Gz = double.Parse(row[7])
+                    Timestamp = uint.Parse(row[2]),
+                    Ax = double.Parse(row[3]),
+                    Ay = double.Parse(row[4]),
+                    Az = double.Parse(row[5]),
+                    Gx = double.Parse(row[6]),
+                    Gy = double.Parse(row[7]),
+                    Gz = double.Parse(row[8])
                 });
             }
         }

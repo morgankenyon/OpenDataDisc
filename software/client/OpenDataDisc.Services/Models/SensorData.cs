@@ -4,25 +4,25 @@ namespace OpenDataDisc.Services.Models
 {
     public class SensorData
     {
-        public SensorData(
-            long date,
-            long cycleCount,
-            float accX,
-            float accY,
-            float accZ,
-            float gyroX,
-            float gyroY,
-            float gyroZ)
-        {
-            Date = date;
-            CycleCount = cycleCount;
-            AccX = accX;
-            AccY = accY;
-            AccZ = accZ;
-            GyroX = gyroX;
-            GyroY = gyroY;
-            GyroZ = gyroZ;
-        }
+        //public SensorData(
+        //    long date,
+        //    long cycleCount,
+        //    float accX,
+        //    float accY,
+        //    float accZ,
+        //    float gyroX,
+        //    float gyroY,
+        //    float gyroZ)
+        //{
+        //    Date = date;
+        //    CycleCount = cycleCount;
+        //    AccX = accX;
+        //    AccY = accY;
+        //    AccZ = accZ;
+        //    GyroX = gyroX;
+        //    GyroY = gyroY;
+        //    GyroZ = gyroZ;
+        //}
 
         private float parseValue(string value)
         {
@@ -59,7 +59,15 @@ namespace OpenDataDisc.Services.Models
 
             if (measurements.Length >= 3)
             {
-                if (long.TryParse(measurements[2], out var cycleCount))
+                if (uint.TryParse(measurements[2], out var uptimeMs))
+                {
+                    UptimeMs = uptimeMs;
+                }
+            }
+
+            if (measurements.Length >= 4)
+            {
+                if (long.TryParse(measurements[3], out var cycleCount))
                 {
                     CycleCount = cycleCount;
                 }
@@ -67,6 +75,7 @@ namespace OpenDataDisc.Services.Models
         }
 
         public long Date { get; }
+        public long UptimeMs { get; }
         public long CycleCount { get; }
         public float AccX { get; }
         public float AccY { get; }

@@ -87,7 +87,7 @@ namespace OpenDataDisc.Services
                         migrationText = @"
     BEGIN TRANSACTION;
 
-    CREATE Table sensor_data (date INTEGER, cycleCount INTEGER, accX FLOAT, accY FLOAT, accZ FLOAT, gyroX FLOAT, gyroY FLOAT, gyroZ FLOAT);
+    CREATE Table sensor_data (date INTEGER, cycleCount INTEGER, uptimeMs INTEGER, accX FLOAT, accY FLOAT, accZ FLOAT, gyroX FLOAT, gyroY FLOAT, gyroZ FLOAT);
 
     INSERT INTO migrations (name, number) VALUES ('sensor_data_table', 2);
 

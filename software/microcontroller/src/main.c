@@ -155,6 +155,7 @@ typedef struct IMUData
     AcceloremeterData aData;
     GyroData gData;
     uint32_t cycleCount;
+    int64_t uptime;
 } IMUData;
 
 enum OperationMode operation_mode;
@@ -225,6 +226,10 @@ uint32_t get_cycle_count()
     return k_cycle_get_32();
 }
 
+int64_t get_uptime()
+{
+    return k_uptime_get();
+}
 
 //read value from the register passed in
 uint8_t read_control_register(uint8_t offset)
@@ -301,25 +306,27 @@ int init_ble(void)
 static int notify_adc(IMUData data)
 {
     //used to calculate the length needed to create the buffer
-    int len = snprintf(NULL, 0, "%f,%f,%f;%f,%f,%f;%" PRIu32,
-        data.aData.AccX,
-        data.aData.AccX,
-        data.aData.AccZ,
-        data.gData.GyroX,
-        data.gData.GyroY,
-        data.gData.GyroZ,
-        data.cycleCount);
-
-    //Different number of floats led to different values here than I would expect
-    //need to dig optimizing this
-    char buffer[len];
-    snprintf(buffer, sizeof buffer, "%f,%f,%f;%f,%f,%f;%" PRIu32,
+    int len = snprintf(NULL, 0, "%f,%f,%f;%f,%f,%f;%lld;%" PRIu32,
         data.aData.AccX,
         data.aData.AccY,
         data.aData.AccZ,
         data.gData.GyroX,
         data.gData.GyroY,
         data.gData.GyroZ,
+        data.uptime,
+        data.cycleCount);
+
+    //Different number of floats led to different values here than I would expect
+    //need to dig optimizing this
+    char buffer[len];
+    snprintf(buffer, sizeof buffer, "%f,%f,%f;%f,%f,%f;%lld;%" PRIu32,
+        data.aData.AccX,
+        data.aData.AccY,
+        data.aData.AccZ,
+        data.gData.GyroX,
+        data.gData.GyroY,
+        data.gData.GyroZ,
+        data.uptime,
         data.cycleCount);
 
     int rc;
@@ -509,6 +516,7 @@ IMUData pull_imu_data(IMUSettings settings)
     }
     //place as close as I can to actual interaction with my IMU
     //not sure if placing it before might be more accurate
+    int64_t uptime = get_uptime();
     uint32_t cycle_count = get_cycle_count();
 
     //get gyro data
@@ -519,6 +527,7 @@ IMUData pull_imu_data(IMUSettings settings)
     imuData.gData = gdata;
     imuData.aData = adata;
     imuData.cycleCount = cycle_count;
+    imuData.uptime = uptime;
 
     return imuData;
 }

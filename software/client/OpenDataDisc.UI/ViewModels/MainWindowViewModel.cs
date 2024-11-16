@@ -264,7 +264,6 @@ public class MainWindowViewModel : ViewModelBase
                     //ensure sensor configuration
                     await ConfirmOrGenerateConfiguration(chars, token);
 
-
                     //subscribe to messages
                     chars.CharacteristicValueChanged += BuildNotifyEventHandler(Messages, UpdateCount);
 
