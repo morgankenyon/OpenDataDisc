@@ -4,7 +4,37 @@ I've been utilizing Claude to try to understand how to implement a Kalman filter
 
 At the moment I've been unable to determine where my problems lie, and I don't know enough about the Kalman filter to actually understand what to change. So taking a step back and going to write something from scratch.
 
+I'm following this book: https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python
+
+
+## Lessons notebooks
+
+### 01 GH Filter
+
+This notebook introduces the problem that filters are trying to solve: __How to make sense of noisy data__.
+
+They started with a thought experiment about scales with a large margin of error.
+
+What if we have 2 measurements from this scale? How could we pick a reasonable value given these two noisy measurements? We'd probably pick a value in between those two measurements.
+
+Then they introduced the idea of a measurement vs a prediction.
+
+Again, they are just two data points much like the scales, but they key point __how can we blend the measurement and prediction to obtain a value__?
+
+Then we introduced a g-h filter:
+* g - determines whether we take more of the measurement or prediction
+* h - controls
+
+And every step of the algorithm we:
+
+* Predict the measurement(s)
+* Update our values
+
+Changing g and h changes how quickly the algorithm responds to differences in measurements.
+
 ## Issues
+
+I'll document any issues and find and my resolution to them.
 
 ### Cannot find ipywidgets.
 ```
