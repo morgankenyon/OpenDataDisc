@@ -23,15 +23,46 @@ Again, they are just two data points much like the scales, but they key point __
 
 Then we introduced a g-h filter:
 * g - determines whether we take more of the measurement or prediction
-* h - controls
+* h - controls how quickly we respond to changes from the measurement
 
 And every step of the algorithm we:
 
 * Predict the measurement(s)
 * Update our values
 
-Changing g and h changes how quickly the algorithm responds to differences in measurements.
+### 02 Discrete Bayes
 
+> The Kalman filter belongs to a family of filters called _Bayesian filters_.
+
+#### Tracking a Dog
+
+We create a device (sensor + microcontroller) to track where a dog is in a hallway.
+
+How can we use this device to track the dog's position?
+
+* prior - probability prior to incorporating measurements or other information
+  * Also called prior probability distribution
+* Frequentists v Bayesian statistics
+  * Frequentist statistics is based on the idea that probabilities are fixed and objective.
+    * Coin flip - probability of heads/tails is always 50/50. That probability never changes.
+    * If I do X 100 times, what's the probability?
+  * Bayesian statistics is based on the idea that probabilities change based on new information and embrace subjectivity.
+    * sensors and filters
+    * What's the probability of X happening right now/after I take this action?
+* categorical distribution - a discrete distribution describing the probability of observing 
+ outcomes
+* multimodal distribution - multiple beliefs about the position of our dog.
+* posterior - a probability distribution after incorporating the  measurement information.
+  * Also called posterior probability distribution
+* likelihood - how likely each position is given the measurement. Not a distribution since doesn't sum to one.
+
+We can plot a categorical distribution with our belief about the dog's position. As the dog moves and we take more measurements, we can determine with more certainty where it is.
+
+We are using meaurements to help us orient the dog inside the hallway.
+
+What happens when we introduce noise into our sensor?
+
+> When we talk about the filter's output we typically call the state after performing the prediction the prior or prediction, and we call the state after the update either the posterior or the estimated state.
 ## Issues
 
 I'll document any issues and find and my resolution to them.
