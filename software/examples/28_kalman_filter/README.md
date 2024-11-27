@@ -63,6 +63,34 @@ We are using meaurements to help us orient the dog inside the hallway.
 What happens when we introduce noise into our sensor?
 
 > When we talk about the filter's output we typically call the state after performing the prediction the prior or prediction, and we call the state after the update either the posterior or the estimated state.
+
+* System - what we are trying to model or filter
+  * Ex: System is dog
+* State - it's current configuration or value
+  * Ex: State is the dog's position
+  * We rarely know the actual state, so we say our filters produce the _estimated state_.
+* state or system evolution - One cycle of prediction and updating with a measurement.
+  * For filters, time is usually a discrete step, such as 1 second
+  * For our dog tracker, the system is the position of the dog, and the state evolution is the position after a discrete amount of time has passed.
+* Process model - how we model our system behavior
+  * The dog moving one or more positions at each time step.
+* System error or process error - the error in the model
+* The prediction is our new prior
+
+#### Adding Uncertainty to the Prediction
+
+All sensors have noise, so we can't be certain where our dog is. How can we incorporate uncertainty in our system.
+
+We have to incorporate the probability related to sensor noise into our prediction.
+
+If we're unsure of our position and we have noisy sensors, every prediction we take we lose accuracy/information. Since uncertain probabilities compound over time. If we approach to infinity the probability becomes even among the possible states.
+
+#### Convolution
+
+We want to generalize our code so it will work for all cases.
+
+We solve this with convolution. Convolution modifies one function with another function. In our case, we are modifying a probability distribution with the error function of the sensor.
+
 ## Issues
 
 I'll document any issues and find and my resolution to them.

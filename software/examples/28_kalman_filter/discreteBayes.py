@@ -46,7 +46,25 @@ def lh_hallway(hall, z, z_prob):
 belief = np.array([0.1] * 10)
 likelihood = lh_hallway(hallway, z=1, z_prob=.75)
 posterior = update(likelihood, belief)
-print("\nGeneralized method")
-print(belief)
-print(likelihood)
-print(posterior)
+# print("\nGeneralized method")
+# print(belief)
+# print(likelihood)
+# print(posterior)
+
+
+def predict_move(belief, move, p_under, p_correct, p_over):
+    n = len(belief)
+    prior = np.zeros(n)
+    for i in range(n):
+        prior[i] = (
+            belief[(i-move) % n]   * p_correct +
+            belief[(i-move-1) % n] * p_over +
+            belief[(i-move+1) % n] * p_under)      
+    return prior
+
+belief = [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.]
+prior = predict_move(belief, 2, .1, .8, .1)
+# book_plots.plot_belief_vs_prior(belief, prior)
+
+print (belief)
+print (prior)
