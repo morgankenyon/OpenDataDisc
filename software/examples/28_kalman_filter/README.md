@@ -91,6 +91,20 @@ We want to generalize our code so it will work for all cases.
 
 We solve this with convolution. Convolution modifies one function with another function. In our case, we are modifying a probability distribution with the error function of the sensor.
 
+Kernel (which is an array) is slid across another array. This helps us calculate the probabilities at each time step.
+
+#### Integrating Measurements and Movement Updates
+
+How do we overcome the problem of losing information during a prediction? It's followed by an update step that incorporates the next measurement into it.
+
+* predictor correctors - a type of algorithm that makes a prediction, then corrects it.
+  * Kalman filter is a predictor corrector.
+
+
+* What does the likelihood function do?
+  * Computes how likely each position is given the measurement. 
+  * It is not a probability distribution because it does not sum to one.
+
 ## Issues
 
 I'll document any issues and find and my resolution to them.
