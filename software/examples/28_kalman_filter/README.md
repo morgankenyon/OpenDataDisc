@@ -104,6 +104,11 @@ How do we overcome the problem of losing information during a prediction? It's f
 * What does the likelihood function do?
   * Computes how likely each position is given the measurement. 
   * It is not a probability distribution because it does not sum to one.
+  * Computation of the likelihood varies per problem. For example, the sensor might not return just 1 or 0, but a float between 0 and 1 indicating the probability of being in front of a door. It might use computer vision and report a blob shape that you then probabilistically match to a door. It might use sonar and return a distance reading. In each case the computation of the likelihood will be different. We will see many examples of this throughout the book, and learn how to perform these calculations.
+
+### 03 Gaussians
+
+
 
 ## Issues
 
