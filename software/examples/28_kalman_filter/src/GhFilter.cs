@@ -120,5 +120,45 @@ namespace KalmanCode
 
             return (estimates, predictions);
         }
+
+        public void GhFilterRunner()
+        {
+
+            double[] weights = [158.0, 164.2, 160.3, 159.9, 162.1, 164.6,
+                169.6, 167.4, 166.4, 171.0, 171.2, 172.6];
+            var weight = 160;
+            var gainRate = -1.0;
+            var g = 4.0 / 10;
+            var h = 1.0 / 3;
+            var timeStep = 1.0;
+
+            var results = GhFilterImpl(weights, weight, gainRate, g, h, timeStep);
+
+            foreach (var result in results)
+            {
+                Console.WriteLine($"estimate: {result:f2}");
+            }
+        }
+
+        public List<double> GhFilterImpl(double[] data, double x0, double dx, double g, double h, double dt)
+        {
+            var xEstimate = x0;
+            var results = new List<double>(data.Length);
+            foreach (var z in data)
+            {
+                //predict
+                var xPrediction = xEstimate + dt * dx;
+                dx = dx;
+
+                //update
+                var residual = z - xPrediction;
+                dx = dx + h * (residual) / dt;
+                xEstimate = xPrediction + g * residual;
+
+                results.Add(xEstimate);
+            }
+
+            return results;
+        }
     }
 }
