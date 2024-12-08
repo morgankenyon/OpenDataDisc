@@ -6,7 +6,7 @@ class Program
     {
         Console.WriteLine("Welcome to Kalman Filters!");
 
-        GhCode();
+        DiscreteBayesCode();
     }
 
     static void GhCode()
@@ -16,5 +16,11 @@ class Program
         ghFilter.PredictUsingCalculatedGainRateRunner();
 
         ghFilter.GhFilterRunner();
+    }
+
+    static void DiscreteBayesCode()
+    {
+        var discreteBayes = new DiscreteBayes();
+        discreteBayes.ScaledUpdateRunner();
     }
 }

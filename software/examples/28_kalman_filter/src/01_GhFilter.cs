@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace KalmanCode
+﻿namespace KalmanCode
 {
     /// <summary>
-    /// C# code that follows along with "01-g-h-filter" of the
+    /// C# code that follows along with "01-g-h-filter" chapter of the
     /// "Kalman and Bayesian Filters in Python" book
     /// https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python
     /// Hosted locally at http://localhost:8888/notebooks/01-g-h-filter.ipynb
@@ -100,7 +94,9 @@ namespace KalmanCode
                 var previousEstimate = weight;
                 //prediction step
                 weight = weight + gainRate * timeStep;
+#pragma warning disable CS1717
                 gainRate = gainRate; //why is this in here?
+#pragma warning restore CS1717
                 predictions.Add(weight);
                 var predictedWeight = weight;
 
@@ -148,8 +144,9 @@ namespace KalmanCode
             {
                 //predict
                 var xPrediction = xEstimate + dt * dx;
+#pragma warning disable CS1717
                 dx = dx;
-
+#pragma warning restore CS1717
                 //update
                 var residual = z - xPrediction;
                 dx = dx + h * (residual) / dt;
